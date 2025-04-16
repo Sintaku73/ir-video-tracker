@@ -1,2 +1,5 @@
 .MATLABDriveTag
 *.mp4
+*.mlx
+/input/*
+/temp
