@@ -4,7 +4,7 @@ clear
 
 %%
 load("input\line_6Hz.mat");
-cumPixel = cumPixel .* [1 -1];
+carPos = carPos.*[1 -1];
 v = VideoReader("input\2024-11-03 00-20-27_0_0.mp4");
 
 %%
@@ -31,11 +31,11 @@ wTrim = hTrim;
 hCut = 80;
 wCut = hCut;
 
-posInt = round(cumPixel);
+posInt = round(carPos);
 posFlip = flip(posInt,2);
 sizeMap = max(posFlip,[],1)-min(posFlip,[],1)+[hTrim wTrim]+1;
 shiftMap = min(posFlip,[],1)*(-1)+1;
-posShifted = cumPixel+flip(shiftMap,2)+([wTrim hTrim]+1)/2;
+posShifted = carPos+flip(shiftMap,2)+([wTrim hTrim]+1)/2;
 
 %%
 imgMap = zeros(sizeMap(1),sizeMap(2),3,"uint8");
