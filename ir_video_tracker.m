@@ -36,8 +36,8 @@ end
 carPos = cumsum(diffPixel) .* [1 -1];
 
 %% Fix the defference between start and end
-frameStart = read(v,iFrameStart);
-frameEnd = read(v,iFrameEnd);
+frameStart = read(v,listFrame(1));
+frameEnd = read(v,listFrame(end));
 
 trimmedStart = frameStart(hIdxStart:hIdxStart+hTrim-1, wIdxStart:wIdxStart+wTrim-1, :);
 trimmedEnd = frameEnd(hIdxStart:hIdxStart+hTrim-1, wIdxStart:wIdxStart+wTrim-1, :);
