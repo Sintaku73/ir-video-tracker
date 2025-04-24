@@ -72,7 +72,7 @@ plot(carPos(:,1),carPos(:,2),".-")
 axis equal
 
 %%
-% save(sprintf("input/line_%dHz.mat",v.FrameRate/intervalFrame),"carPos","listFrame");
+% save(sprintf("input/line_%dHz.mat",v.FrameRate/intervalFrame),"carPos","cumAngle","listFrame");
 
 %%
 function tform = getImgMove(gray1,gray2)

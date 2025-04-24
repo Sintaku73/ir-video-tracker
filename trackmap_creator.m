@@ -5,7 +5,7 @@ clear
 %%
 load("input\line_6Hz.mat");
 carPos = carPos.*[1 -1];
-v = VideoReader("input\2024-11-03 00-20-27_0_0.mp4");
+v = VideoReader("input/iRacing.com Simulator 2025-04-21 00-14-39.mp4");
 
 %%
 function imgTrimmed = trimImg(imgOrig,hTrim,wTrim)
@@ -43,6 +43,7 @@ for i = progress(1:length(listFrame),"UpdateRate",2)
     nFrame = listFrame(i);
     frameCurrent = trimImg(read(v,nFrame),hTrim,wTrim);
     frameCurrent = deleteAroundCar(frameCurrent,hCut,wCut);
+    frameCurrent = imrotate(frameCurrent,-cumAngle(i),"crop");
     idxStart = posFlip(i,:)+shiftMap;
     idxEnd = idxStart+[hTrim wTrim]-1;
     imgTemp = imgMap(idxStart(1):idxEnd(1), idxStart(2):idxEnd(2),:);
