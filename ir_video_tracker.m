@@ -21,7 +21,7 @@ intervalFrame = 30;
 listFrame = iFrameStart:intervalFrame:iFrameEnd;
 nFrame = length(listFrame);
 frameCurrent = read(v, iFrameStart);
-trimmedCurrent = frameCurrent(hIdxStart:hIdxStart+hTrim-1, wIdxStart:wIdxStart+wTrim-1, :);
+trimmedCurrent = trimImg(frameCurrent,hTrim,wTrim);
 grayCurrent = rgb2gray(trimmedCurrent);
 diffTranslation = zeros(nFrame, 2);
 diffAngle = zeros(nFrame,1);
@@ -29,7 +29,7 @@ diffAngle = zeros(nFrame,1);
 %%
 for i=progress(2:nFrame, "UpdateRate", 2)
     frameNext = read(v, listFrame(i));
-    trimmedNext = frameNext(hIdxStart:hIdxStart+hTrim-1, wIdxStart:wIdxStart+wTrim-1, :);
+    trimmedNext = trimImg(frameNext,hTrim,wTrim);
     grayNext = rgb2gray(trimmedNext);
 
     tform = getImgMove(grayCurrent,grayNext);
@@ -57,8 +57,8 @@ carPos = cumsum(diffRotated).*[1 -1];
 frameStart = read(v,listFrame(1));
 frameEnd = read(v,listFrame(end));
 
-trimmedStart = frameStart(hIdxStart:hIdxStart+hTrim-1, wIdxStart:wIdxStart+wTrim-1, :);
-trimmedEnd = frameEnd(hIdxStart:hIdxStart+hTrim-1, wIdxStart:wIdxStart+wTrim-1, :);
+trimmedStart = trimImg(frameStart,hTrim,wTrim);
+trimmedEnd = trimImg(frameEnd,hTrim,wTrim);
 
 grayStart = rgb2gray(trimmedStart);
 grayEnd = rgb2gray(trimmedEnd);
