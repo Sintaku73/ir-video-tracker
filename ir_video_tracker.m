@@ -17,7 +17,7 @@ wIdxStart = (wImg - wTrim)/2 + 1;
 %%
 iFrameStart = 185;
 iFrameEnd = 6230;
-intervalFrame = 30;
+intervalFrame = 1;
 listFrame = iFrameStart:intervalFrame:iFrameEnd;
 nFrame = length(listFrame);
 frameCurrent = read(v, iFrameStart);
@@ -38,12 +38,11 @@ for i=progress(2:nFrame, "UpdateRate", 2)
 
     grayCurrent = grayNext;
 end
-% carPos = cumsum(diffTranslation).*[1 -1];
-cumAngle = cumsum(diffAngle);
 
 %%
 rot = @(theta) [cosd(theta) -sind(theta); sind(theta) cosd(theta)];
 
+cumAngle = cumsum(diffAngle);
 diffRotated=zeros(size(diffTranslation));
 for i=2:nFrame
     diffRotated(i,:)=transpose(rot(cumAngle(i-1))*diffTranslation(i,:).' ...
@@ -51,7 +50,7 @@ for i=2:nFrame
 end
 
 %%
-carPos = cumsum(diffRotated).*[1 -1];
+carPos = cumsum(diffRotated);
 
 %% Fix the defference between start and end
 frameStart = read(v,listFrame(1));
@@ -63,17 +62,22 @@ trimmedEnd = trimImg(frameEnd,hTrim,wTrim);
 grayStart = rgb2gray(trimmedStart);
 grayEnd = rgb2gray(trimmedEnd);
 
-diffS2E = getImgMove(grayStart,grayEnd).Translation.*[1 -1];
+tform = getImgMove(grayStart,grayEnd);
+diffS2E = tform.Translation-carCoG+transpose(rot(tform.RotationAngle)*carCoG.');
 
 %%
-shiftEnd = carPos(1,:)-carPos(end,:)+diffS2E;
-carPos = carPos+linspace(0,1,nFrame).'.*shiftEnd;
+shiftPos = carPos(1,:)-carPos(end,:)+diffS2E;
+carPos = (carPos+linspace(0,1,nFrame).'.*shiftPos).*[1 -1];
+
+shiftAngle = tform.RotationAngle-cumAngle(end);
+cumAngle = cumAngle+linspace(0,1,nFrame).'.*shiftAngle;
 
 %%
 str = num2cell(listFrame);
 figure
 plot(carPos(:,1),carPos(:,2),".-")
 axis equal
+grid on
 hold on
 text(carPos(:,1),carPos(:,2),str)
 
