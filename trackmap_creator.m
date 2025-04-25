@@ -3,33 +3,17 @@ close all
 clear
 
 %%
-load("input\line_6Hz.mat");
+addpath(fullfile(pwd,"utils"));
+
+load("input\line_60Hz.mat");
 carPos = carPos.*[1 -1];
-v = VideoReader("input\2024-11-03 00-20-27_0_0.mp4");
-
-%%
-function imgTrimmed = trimImg(imgOrig,hTrim,wTrim)
-hImg = size(imgOrig,1);
-wImg = size(imgOrig,2);
-hIdxStart = (hImg - hTrim)/2 + 1;
-wIdxStart = (wImg - wTrim)/2 + 1;
-imgTrimmed = imgOrig(hIdxStart:hIdxStart+hTrim-1, wIdxStart:wIdxStart+wTrim-1, :);
-end
-
-function imgHollow = deleteAroundCar(imgOrig,hCut,wCut)
-hImg = size(imgOrig,1);
-wImg = size(imgOrig,2);
-hIdxStart = (hImg - hCut)/2 + 1;
-wIdxStart = (wImg - wCut)/2 + 1;
-imgOrig(hIdxStart:hIdxStart+hCut-1, wIdxStart:wIdxStart+wCut-1, :) = 0;
-imgHollow = imgOrig;
-end
+v = VideoReader("input/iRacing.com Simulator 2025-04-21 00-14-39.mp4");
 
 %%
 hTrim = 300;
 wTrim = hTrim;
-hCut = 80;
-wCut = hCut;
+hCut = 60;
+wCut = 30;
 
 posInt = round(carPos);
 posFlip = flip(posInt,2);
@@ -43,6 +27,7 @@ for i = progress(1:length(listFrame),"UpdateRate",2)
     nFrame = listFrame(i);
     frameCurrent = trimImg(read(v,nFrame),hTrim,wTrim);
     frameCurrent = deleteAroundCar(frameCurrent,hCut,wCut);
+    frameCurrent = imrotate(frameCurrent,-cumAngle(i),"crop");
     idxStart = posFlip(i,:)+shiftMap;
     idxEnd = idxStart+[hTrim wTrim]-1;
     imgTemp = imgMap(idxStart(1):idxEnd(1), idxStart(2):idxEnd(2),:);
@@ -60,3 +45,13 @@ ylim([0.5 sizeMap(2)*3/4+0.5])
 plot(posShifted(:,1),posShifted(:,2))
 axis on
 f.Position(2:4)=[360 800 600];
+
+%%
+function imgHollow = deleteAroundCar(imgOrig,hCut,wCut)
+hImg = size(imgOrig,1);
+wImg = size(imgOrig,2);
+hIdxStart = (hImg - hCut)/2 + 1;
+wIdxStart = (wImg - wCut)/2 + 1;
+imgOrig(hIdxStart:hIdxStart+hCut-1, wIdxStart:wIdxStart+wCut-1, :) = 0;
+imgHollow = imgOrig;
+end
