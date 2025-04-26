@@ -65,7 +65,7 @@ grayStart = rgb2gray(trimmedStart);
 grayEnd = rgb2gray(trimmedEnd);
 
 tform = getImgMove(grayStart,grayEnd);
-diffS2E = tform.Translation-carCoG+transpose(rot(tform.RotationAngle)*carCoG.');
+diffS2E = getCarMove(tform,carCoG);
 
 %%
 shiftPos = carPos(1,:)-carPos(end,:)+diffS2E;
