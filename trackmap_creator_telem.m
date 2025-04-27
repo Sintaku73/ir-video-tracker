@@ -44,16 +44,16 @@ carCoG = [wTrimMove/2+0.5 hTrimMove/2+0.5];
 %%
 diffGps = vecnorm(diff(carPos,[],1),2,2);
 
-frameStart = trimImg(read(v,listFrame(1)),hTrimMove,wTrimMove);
-frameStartNext =  trimImg(read(v,listFrame(2)),hTrimMove,wTrimMove);
-frameEnd = trimImg(read(v,listFrame(end)),hTrimMove,wTrimMove);
-frameEndPrev = trimImg(read(v,listFrame(end-1)),hTrimMove,wTrimMove);
+frameStart = irvtUtils.trimImg(read(v,listFrame(1)),hTrimMove,wTrimMove);
+frameStartNext =  irvtUtils.trimImg(read(v,listFrame(2)),hTrimMove,wTrimMove);
+frameEnd = irvtUtils.trimImg(read(v,listFrame(end)),hTrimMove,wTrimMove);
+frameEndPrev = irvtUtils.trimImg(read(v,listFrame(end-1)),hTrimMove,wTrimMove);
 
-tformStart = getImgMove(rgb2gray(frameStart),rgb2gray(frameStartNext));
-tfotmEnd = getImgMove(rgb2gray(frameEndPrev),rgb2gray(frameEnd));
+tformStart = irvtUtils.getImgMove(rgb2gray(frameStart),rgb2gray(frameStartNext));
+tfotmEnd = irvtUtils.getImgMove(rgb2gray(frameEndPrev),rgb2gray(frameEnd));
 
-diffFrameStart = norm(getCarMove(tformStart,carCoG));
-diffFrameEnd = norm(getCarMove(tfotmEnd,carCoG));
+diffFrameStart = norm(irvtUtils.getCarMove(tformStart,carCoG));
+diffFrameEnd = norm(irvtUtils.getCarMove(tfotmEnd,carCoG));
 
 %%
 m2px = mean([diffFrameStart/diffGps(1) diffFrameEnd/diffGps(end)]);
@@ -69,8 +69,8 @@ posShifted = carPosPixel+flip(shiftMap,2)+([wTrimMap hTrimMap]+1)/2;
 imgMap = zeros(sizeMap(1),sizeMap(2),3,"uint8");
 for i = progress(1:nData,"UpdateRate",2)
     iFrame = listFrame(i);
-    frameCurrent = trimImg(read(v,iFrame),hTrimMap,wTrimMap);
-    frameCurrent = deleteAroundCar(frameCurrent,hCut,wCut);
+    frameCurrent = irvtUtils.trimImg(read(v,iFrame),hTrimMap,wTrimMap);
+    frameCurrent = irvtUtils.deleteAroundCar(frameCurrent,hCut,wCut);
     frameCurrent = imrotate(frameCurrent,rad2deg(yawValid(i))-90,"crop");
     idxStart = posFlip(i,:)+shiftMap;
     idxEnd = idxStart+[hTrimMap wTrimMap]-1;
@@ -143,13 +143,3 @@ plot(carPos(:,1),carPos(:,2))
 %     writeVideo(v,getframe(f));
 % end
 % close(v);
-
-%%
-function imgHollow = deleteAroundCar(imgOrig,hCut,wCut)
-hImg = size(imgOrig,1);
-wImg = size(imgOrig,2);
-hIdxStart = (hImg - hCut)/2 + 1;
-wIdxStart = (wImg - wCut)/2 + 1;
-imgOrig(hIdxStart:hIdxStart+hCut-1, wIdxStart:wIdxStart+wCut-1, :) = 0;
-imgHollow = imgOrig;
-end

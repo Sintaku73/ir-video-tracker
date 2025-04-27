@@ -78,7 +78,7 @@ iFrameEnd = 6230;
 intervalFrame = 1;
 nFrame = length(listFrame);
 frameCurrent = read(v, iFrameStart);
-trimmedCurrent = trimImg(frameCurrent,hTrim,wTrim);
+trimmedCurrent = irvtUtils.trimImg(frameCurrent,hTrim,wTrim);
 grayCurrent = rgb2gray(trimmedCurrent);
 diffTranslation = zeros(nFrame, 2);
 diffAngle = zeros(nFrame,1);
@@ -86,10 +86,10 @@ diffAngle = zeros(nFrame,1);
 %%
 for i=progress(2:nFrame, "UpdateRate", 2)
     frameNext = read(v, listFrame(i));
-    trimmedNext = trimImg(frameNext,hTrim,wTrim);
+    trimmedNext = irvtUtils.trimImg(frameNext,hTrim,wTrim);
     grayNext = rgb2gray(trimmedNext);
 
-    tform = getImgMove(grayCurrent,grayNext);
+    tform = irvtUtils.getImgMove(grayCurrent,grayNext);
     diffTranslation(i,:) = tform.Translation;
     diffAngle(i) = tform.RotationAngle;
 
@@ -113,14 +113,14 @@ carPos = cumsum(diffRotated);
 frameStart = read(v,listFrame(1));
 frameEnd = read(v,listFrame(end));
 
-trimmedStart = trimImg(frameStart,hTrim,wTrim);
-trimmedEnd = trimImg(frameEnd,hTrim,wTrim);
+trimmedStart = irvtUtils.trimImg(frameStart,hTrim,wTrim);
+trimmedEnd = irvtUtils.trimImg(frameEnd,hTrim,wTrim);
 
 grayStart = rgb2gray(trimmedStart);
 grayEnd = rgb2gray(trimmedEnd);
 
-tform = getImgMove(grayStart,grayEnd);
-diffS2E = getCarMove(tform,carCoG);
+tform = irvtUtils.getImgMove(grayStart,grayEnd);
+diffS2E = irvtUtils.getCarMove(tform,carCoG);
 
 %%
 shiftPos = carPos(1,:)-carPos(end,:)+diffS2E;
