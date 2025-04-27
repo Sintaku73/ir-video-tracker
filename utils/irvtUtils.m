@@ -93,5 +93,74 @@ classdef irvtUtils
             shiftAngle = tform.RotationAngle-carYaw(end);
             carYaw = carYaw+linspace(0,1,nFrame).'.*shiftAngle;
         end
+
+        function [carPos,yawValid,listFrame,m2px,imgMap,RA] = getTrackMapLog( ...
+                v,iFrameStart,pathLog,lapSelected,hTrimMap,wTrimMap,hCut,wCut,hTrimMove,wTrimMove)
+            % Load the log file
+            load(pathLog,"Lap","Latitude_Degrees","Latitude_Minutes","Latitude_Minute_fraction", ...
+                "Longitude_Degrees","Longitude_Minutes","Longitude_Minute___fraction","GPS_Altitude","YawNorth");
+            gpsLat = Latitude_Degrees.Value + Latitude_Minutes.Value./60 + Latitude_Minute_fraction.Value./3600;
+            gpsLon = Longitude_Degrees.Value + Longitude_Minutes.Value./60 + Longitude_Minute___fraction.Value./3600;
+
+            % Select the lap
+            idxValid = Lap.Value==lapSelected;
+            gpsLatValid = gpsLat(idxValid);
+            gpsLonValid = gpsLon(idxValid);
+            gpsAltValid = GPS_Altitude.Value(idxValid);
+            yawValid = (YawNorth.Value(idxValid)-pi/2).*(-1);
+
+            [x,y,~] = matmap3d.geodetic2enu(gpsLatValid,gpsLonValid,gpsAltValid,gpsLatValid(1),gpsLonValid(1),gpsAltValid(1));
+            carPos = [x.' y.'].*[1 -1];
+
+            nData = sum(idxValid);
+            listFrame = iFrameStart:iFrameStart+nData-1;
+
+            % Calculate resolution
+            carCoG = [wTrimMove/2+0.5 hTrimMove/2+0.5];
+            diffGps = vecnorm(diff(carPos,[],1),2,2);
+
+            frameStart = irvtUtils.trimImg(read(v,listFrame(1)),hTrimMove,wTrimMove);
+            frameStartNext =  irvtUtils.trimImg(read(v,listFrame(2)),hTrimMove,wTrimMove);
+            frameEnd = irvtUtils.trimImg(read(v,listFrame(end)),hTrimMove,wTrimMove);
+            frameEndPrev = irvtUtils.trimImg(read(v,listFrame(end-1)),hTrimMove,wTrimMove);
+
+            tformStart = irvtUtils.getImgMove(rgb2gray(frameStart),rgb2gray(frameStartNext));
+            tfotmEnd = irvtUtils.getImgMove(rgb2gray(frameEndPrev),rgb2gray(frameEnd));
+
+            diffFrameStart = norm(irvtUtils.getCarMove(tformStart,carCoG));
+            diffFrameEnd = norm(irvtUtils.getCarMove(tfotmEnd,carCoG));
+
+            m2px = mean([diffFrameStart/diffGps(1) diffFrameEnd/diffGps(end)]);
+            carPosPixel = carPos.*m2px;
+
+            posInt = round(carPosPixel);
+            posFlip = flip(posInt,2);
+            sizeMap = max(posFlip,[],1)-min(posFlip,[],1)+[hTrimMap wTrimMap]+1;
+            shiftMap = min(posFlip,[],1)*(-1)+1;
+
+            imgMap = zeros(sizeMap(1),sizeMap(2),3,"uint8");
+            for i = progress(1:nData,"UpdateRate",2)
+                iFrame = listFrame(i);
+                frameCurrent = irvtUtils.trimImg(read(v,iFrame),hTrimMap,wTrimMap);
+                frameCurrent = irvtUtils.deleteAroundCar(frameCurrent,hCut,wCut);
+                frameCurrent = imrotate(frameCurrent,rad2deg(yawValid(i))-90,"crop");
+                idxStart = posFlip(i,:)+shiftMap;
+                idxEnd = idxStart+[hTrimMap wTrimMap]-1;
+                imgTemp = imgMap(idxStart(1):idxEnd(1), idxStart(2):idxEnd(2),:);
+                boolHollow = (frameCurrent==0);
+                imgMap(idxStart(1):idxEnd(1), idxStart(2):idxEnd(2),:) = imgTemp.*uint8(boolHollow)+frameCurrent;
+            end
+
+            % Calculate the map limits
+            posMin = min(carPos,[],1);
+            posMax = max(carPos,[],1);
+
+            hTrimMeter = hTrimMap/m2px;
+            wTrimMeter = wTrimMap/m2px;
+
+            xWorldLimits = [posMin(1)-hTrimMeter/2 posMax(1)+hTrimMeter/2];
+            yWorldLimits = [posMin(2)-wTrimMeter/2 posMax(2)+wTrimMeter/2];
+            RA = imref2d(size(imgMap),xWorldLimits,yWorldLimits);
+        end
     end
 end
