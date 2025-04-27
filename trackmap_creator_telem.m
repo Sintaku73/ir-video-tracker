@@ -22,7 +22,7 @@ gpsAltValid = GPS_Altitude.Value(idxValid);
 yawValid = (YawNorth.Value(idxValid)-pi/2).*(-1);
 
 [x,y,~] = matmap3d.geodetic2enu(gpsLatValid,gpsLonValid,gpsAltValid,gpsLatValid(1),gpsLonValid(1),gpsAltValid(1));
-carPos = [x.' y.'];
+carPos = [x.' y.'].*[1 -1];
 
 %%
 nData = sum(idxValid);
@@ -44,10 +44,10 @@ carCoG = [wTrimMove/2+0.5 hTrimMove/2+0.5];
 %%
 diffGps = vecnorm(diff(carPos,[],1),2,2);
 
-frameStart = trimImg(read(v,listFrame(1)),hTrimMap,wTrimMap);
-frameStartNext =  trimImg(read(v,listFrame(2)),hTrimMap,wTrimMap);
-frameEnd = trimImg(read(v,listFrame(end)),hTrimMap,wTrimMap);
-frameEndPrev = trimImg(read(v,listFrame(end-1)),hTrimMap,wTrimMap);
+frameStart = trimImg(read(v,listFrame(1)),hTrimMove,wTrimMove);
+frameStartNext =  trimImg(read(v,listFrame(2)),hTrimMove,wTrimMove);
+frameEnd = trimImg(read(v,listFrame(end)),hTrimMove,wTrimMove);
+frameEndPrev = trimImg(read(v,listFrame(end-1)),hTrimMove,wTrimMove);
 
 tformStart = getImgMove(rgb2gray(frameStart),rgb2gray(frameStartNext));
 tfotmEnd = getImgMove(rgb2gray(frameEndPrev),rgb2gray(frameEnd));
@@ -57,7 +57,7 @@ diffFrameEnd = norm(getCarMove(tfotmEnd,carCoG));
 
 %%
 m2px = mean([diffFrameStart/diffGps(1) diffFrameEnd/diffGps(end)]);
-carPosPixel = carPos.*m2px.*[1 -1];
+carPosPixel = carPos.*m2px;
 
 posInt = round(carPosPixel);
 posFlip = flip(posInt,2);
@@ -80,15 +80,69 @@ for i = progress(1:nData,"UpdateRate",2)
 end
 
 %%
+posMin = min(carPos,[],1);
+posMax = max(carPos,[],1);
+
+hTrimMeter = hTrimMap/m2px;
+wTrimMeter = wTrimMap/m2px;
+
+xWorldLimits = [posMin(1)-hTrimMeter/2 posMax(1)+hTrimMeter/2];
+yWorldLimits = [posMin(2)-wTrimMeter/2 posMax(2)+wTrimMeter/2];
+RA = imref2d(size(imgMap),xWorldLimits,yWorldLimits);
+
+figure
+imshow(imgMap,RA)
+title("m")
+hold on
+plot(carPos(:,1),carPos(:,2))
+% print("temp/m","-dtiffn","-r600")
+
+%%
 % imwrite(imgMap,"temp\trackmap_suzuka.png")
 
-f = figure;
-imshow(imgMap)
-hold on
-% ylim([0.5 sizeMap(2)*3/4+0.5])
-plot(posShifted(:,1),posShifted(:,2))
-axis on
-% f.Position(2:4)=[360 800 600];
+% figure;
+% imshow(imgMap)
+% title("px")
+% hold on
+% plot(posShifted(:,1),posShifted(:,2))
+% axis on
+% print("temp/px","-dtiffn","-r600")
+
+%% car position visualization
+% hShow = 300/m2px;
+% ratioShow = size(imgMap,2)/size(imgMap,1);
+% wShow = ratioShow*hShow;
+%
+% xCurrent = carPos(1,1);
+% yCurrent = carPos(1,2);
+%
+% v = VideoWriter("temp/result_trackmap.mp4","MPEG-4");
+% v.FrameRate = 60;
+% open(v);
+%
+% f = figure("Visible","off");
+% imshow(imgMap,RA)
+% hold on
+% plot(carPos(:,1),carPos(:,2))
+% p = plot(carPos(1,1),carPos(1,2),'o','MarkerFaceColor','red');
+% xlabel("x [m]")
+% ylabel("y [m]")
+% xlim([xCurrent-wShow/2 xCurrent+wShow/2])
+% ylim([yCurrent-hShow/2 yCurrent+hShow/2])
+% hold off
+% % f.Visible = "on";
+% writeVideo(v,getframe(f));
+% for i = progress(2:nData,"UpdateRate",2)
+%     xCurrent = carPos(i,1);
+%     yCurrent = carPos(i,2);
+%     p.XData = xCurrent;
+%     p.YData = yCurrent;
+%     xlim([xCurrent-wShow/2 xCurrent+wShow/2])
+%     ylim([yCurrent-hShow/2 yCurrent+hShow/2])
+%     drawnow
+%     writeVideo(v,getframe(f));
+% end
+% close(v);
 
 %%
 function imgHollow = deleteAroundCar(imgOrig,hCut,wCut)
