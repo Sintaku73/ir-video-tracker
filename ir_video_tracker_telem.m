@@ -99,11 +99,11 @@ end
 %%
 rot = @(theta) [cosd(theta) -sind(theta); sind(theta) cosd(theta)];
 
-cumAngle = cumsum(diffAngle);
+carYaw = cumsum(diffAngle);
 diffRotated=zeros(size(diffTranslation));
 for i=2:nFrame
-    diffRotated(i,:)=transpose(rot(cumAngle(i-1))*diffTranslation(i,:).' ...
-        -rot(cumAngle(i-1))*carCoG.'+rot(cumAngle(i))*carCoG.');
+    diffRotated(i,:)=transpose(rot(carYaw(i-1))*diffTranslation(i,:).' ...
+        -rot(carYaw(i-1))*carCoG.'+rot(carYaw(i))*carCoG.');
 end
 
 %%
@@ -126,8 +126,8 @@ diffS2E = irvtUtils.getCarMove(tform,carCoG);
 shiftPos = carPos(1,:)-carPos(end,:)+diffS2E;
 carPos = (carPos+linspace(0,1,nFrame).'.*shiftPos).*[1 -1];
 
-shiftAngle = tform.RotationAngle-cumAngle(end);
-cumAngle = cumAngle+linspace(0,1,nFrame).'.*shiftAngle;
+shiftAngle = tform.RotationAngle-carYaw(end);
+carYaw = carYaw+linspace(0,1,nFrame).'.*shiftAngle;
 
 %%
 str = num2cell(listFrame);
@@ -139,4 +139,4 @@ grid on
 % text(carPos(:,1),carPos(:,2),str)
 
 %%
-% save(sprintf("input/line_%dHz.mat",v.FrameRate/intervalFrame),"carPos","cumAngle","listFrame");
+% save(sprintf("input/line_%dHz.mat",v.FrameRate/intervalFrame),"carPos","carYaw","listFrame");
