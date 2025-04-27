@@ -98,15 +98,7 @@ plot(carPos(:,1),carPos(:,2))
 % print("temp/m","-dtiffn","-r600")
 
 %%
-% imwrite(imgMap,"temp\trackmap_suzuka.png")
-
-% figure;
-% imshow(imgMap)
-% title("px")
-% hold on
-% plot(posShifted(:,1),posShifted(:,2))
-% axis on
-% print("temp/px","-dtiffn","-r600")
+save("input\reference_lap.mat","v","listFrame","carPos","yawValid","m2px","imgMap","RA");
 
 %% car position visualization
 % hShow = 300/m2px;
