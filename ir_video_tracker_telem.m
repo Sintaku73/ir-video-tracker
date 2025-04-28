@@ -84,7 +84,7 @@ diffTranslation = zeros(nFrame, 2);
 diffAngle = zeros(nFrame,1);
 
 %%
-for i=progress(2:nFrame, "UpdateRate", 2)
+for i = progress(2:nFrame, "UpdateRate", 2)
     frameNext = read(v, listFrame(i));
     trimmedNext = irvtUtils.trimImg(frameNext,hTrim,wTrim);
     grayNext = rgb2gray(trimmedNext);
@@ -101,7 +101,7 @@ rot = @(theta) [cosd(theta) -sind(theta); sind(theta) cosd(theta)];
 
 carYaw = cumsum(diffAngle);
 diffRotated=zeros(size(diffTranslation));
-for i=2:nFrame
+for i = 2:nFrame
     diffRotated(i,:)=transpose(rot(carYaw(i-1))*diffTranslation(i,:).' ...
         -rot(carYaw(i-1))*carCoG.'+rot(carYaw(i))*carCoG.');
 end
