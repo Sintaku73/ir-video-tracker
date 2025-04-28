@@ -12,14 +12,14 @@ lapSelected = 3;
 iFrameStart = 185;
 hTrimMap = 300;
 wTrimMap = hTrimMap;
-hCut = 60;
-wCut = 30;
+hCar = 60;
+wCar = 30;
 hTrimMove = 720;
 wTrimMove = 1790;
 
 %%
 [carPos,yawValid,listFrame,m2px,imgMap,RA] = irvtUtils.getTrackMapLog( ...
-    v,iFrameStart,pathLog,lapSelected,hTrimMap,wTrimMap,hCut,wCut,hTrimMove,wTrimMove);
+    v,iFrameStart,pathLog,lapSelected,hTrimMap,wTrimMap,hCar,wCar,hTrimMove,wTrimMove);
 
 %%
 figure

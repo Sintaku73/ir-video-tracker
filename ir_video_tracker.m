@@ -13,7 +13,7 @@ iFrameEnd = 6230;
 intervalFrame = 1;
 
 %%
-[carPos,carYaw,listFrame] = irvtUtils.getCarPos(v,hTrim,wTrim,iFrameStart,iFrameEnd,intervalFrame);
+[carPos,carYaw,listFrame] = irvtUtils.getCarPos(v,iFrameStart,iFrameEnd,hTrim,wTrim,intervalFrame);
 
 %%
 str = num2cell(listFrame);

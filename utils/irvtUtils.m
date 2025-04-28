@@ -1,19 +1,26 @@
 classdef irvtUtils
-    properties
-        Translation
-        RotationAngle
-    end
-
     methods(Static)
         function arrayRotated = rot(theta)
+            arguments
+                theta (1,1) double
+            end
             arrayRotated = [cosd(theta) -sind(theta); sind(theta) cosd(theta)];
         end
 
         function translation = getCarMove(tform,carCoG)
+            arguments
+                tform (1,1) rigidtform2d
+                carCoG (1,2) double
+            end
+            % Get the translation of the car in the image
             translation = tform.Translation-carCoG+transpose(irvtUtils.rot(tform.RotationAngle)*carCoG.');
         end
 
         function tform = getImgMove(gray1,gray2)
+            arguments
+                gray1 (:,:) uint8
+                gray2 (:,:) uint8
+            end
             pts1 = detectSURFFeatures(gray1);
             pts2 = detectSURFFeatures(gray2);
 
@@ -29,6 +36,11 @@ classdef irvtUtils
         end
 
         function imgTrimmed = trimImg(imgOrig,hTrim,wTrim)
+            arguments
+                imgOrig (:,:,3) uint8
+                hTrim (1,1) double
+                wTrim (1,1) double
+            end
             hImg = size(imgOrig,1);
             wImg = size(imgOrig,2);
             hIdxStart = (hImg-hTrim)/2+1;
@@ -37,6 +49,11 @@ classdef irvtUtils
         end
 
         function imgHollow = deleteAroundCar(imgOrig,hCut,wCut)
+            arguments
+                imgOrig (:,:,3) uint8
+                hCut (1,1) double
+                wCut (1,1) double
+            end
             hImg = size(imgOrig,1);
             wImg = size(imgOrig,2);
             hIdxStart = (hImg-hCut)/2+1;
@@ -45,7 +62,16 @@ classdef irvtUtils
             imgHollow = imgOrig;
         end
 
-        function [carPos,carYaw,listFrame] = getCarPos(v,hTrim,wTrim,iFrameStart,iFrameEnd,intervalFrame)
+        function [carPos,carYaw,listFrame] = getCarPos(v,iFrameStart,iFrameEnd,hTrim,wTrim,intervalFrame)
+            arguments
+                v (1,1) VideoReader
+                iFrameStart (1,1) double
+                iFrameEnd (1,1) double
+                hTrim (1,1) double = 720
+                wTrim (1,1) double = 1790
+                intervalFrame (1,1) double = 1
+            end
+            % Get the car position and yaw from the video
             listFrame = iFrameStart:intervalFrame:iFrameEnd;
             nFrame = length(listFrame);
             frameCurrent = read(v,iFrameStart);
@@ -95,7 +121,19 @@ classdef irvtUtils
         end
 
         function [carPos,yawValid,listFrame,m2px,imgMap,RA] = getTrackMapLog( ...
-                v,iFrameStart,pathLog,lapSelected,hTrimMap,wTrimMap,hCut,wCut,hTrimMove,wTrimMove)
+                v,iFrameStart,pathLog,lapSelected,hTrimMap,wTrimMap,hCar,wCar,hTrimMove,wTrimMove)
+            arguments
+                v (1,1) VideoReader
+                iFrameStart (1,1) double
+                pathLog (1,:) string
+                lapSelected (1,1) double
+                hTrimMap (1,1) double = 300
+                wTrimMap (1,1) double = 300
+                hCar (1,1) double = 60
+                wCar (1,1) double = 30
+                hTrimMove (1,1) double = 720
+                wTrimMove (1,1) double = 1790
+            end
             % Load the log file
             load(pathLog,"Lap","Latitude_Degrees","Latitude_Minutes","Latitude_Minute_fraction", ...
                 "Longitude_Degrees","Longitude_Minutes","Longitude_Minute___fraction","GPS_Altitude","YawNorth");
@@ -142,7 +180,7 @@ classdef irvtUtils
             for i = progress(1:nData,"UpdateRate",2)
                 iFrame = listFrame(i);
                 frameCurrent = irvtUtils.trimImg(read(v,iFrame),hTrimMap,wTrimMap);
-                frameCurrent = irvtUtils.deleteAroundCar(frameCurrent,hCut,wCut);
+                frameCurrent = irvtUtils.deleteAroundCar(frameCurrent,hCar,wCar);
                 frameCurrent = imrotate(frameCurrent,rad2deg(yawValid(i))-90,"crop");
                 idxStart = posFlip(i,:)+shiftMap;
                 idxEnd = idxStart+[hTrimMap wTrimMap]-1;
