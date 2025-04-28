@@ -148,14 +148,15 @@ classdef irvtUtils
             yawValid = (YawNorth.Value(idxValid)-pi/2).*(-1);
 
             [x,y,~] = matmap3d.geodetic2enu(gpsLatValid,gpsLonValid,gpsAltValid,gpsLatValid(1),gpsLonValid(1),gpsAltValid(1));
-            carPos = [x.' y.'].*[1 -1];
+            carPos = [x.' y.'];
+            carPosInv = carPos.*[1 -1];
 
             nData = sum(idxValid);
             listFrame = iFrameStart:iFrameStart+nData-1;
 
             % Calculate resolution
             carCoG = [wTrimMove/2+0.5 hTrimMove/2+0.5];
-            diffGps = vecnorm(diff(carPos,[],1),2,2);
+            diffGps = vecnorm(diff(carPosInv,[],1),2,2);
 
             frameStart = irvtUtils.trimImg(read(v,listFrame(1)),hTrimMove,wTrimMove);
             frameStartNext =  irvtUtils.trimImg(read(v,listFrame(2)),hTrimMove,wTrimMove);
@@ -169,10 +170,9 @@ classdef irvtUtils
             diffFrameEnd = norm(irvtUtils.getCarMove(tfotmEnd,carCoG));
 
             m2px = mean([diffFrameStart/diffGps(1) diffFrameEnd/diffGps(end)]);
-            carPosPixel = carPos.*m2px;
 
-            posInt = round(carPosPixel);
-            posFlip = flip(posInt,2);
+            carPosPixel = round(carPosInv.*m2px);
+            posFlip = flip(carPosPixel,2);
             sizeMap = max(posFlip,[],1)-min(posFlip,[],1)+[hTrimMap wTrimMap]+1;
             shiftMap = min(posFlip,[],1)*(-1)+1;
 
@@ -190,8 +190,8 @@ classdef irvtUtils
             end
 
             % Calculate the map limits
-            posMin = min(carPos,[],1);
-            posMax = max(carPos,[],1);
+            posMin = min(carPosInv,[],1);
+            posMax = max(carPosInv,[],1);
 
             hTrimMeter = hTrimMap/m2px;
             wTrimMeter = wTrimMap/m2px;

@@ -20,13 +20,14 @@ wTrimMove = 1790;
 %%
 [carPos,yawValid,listFrame,m2px,imgMap,RA] = irvtUtils.getTrackMapLog( ...
     v,iFrameStart,pathLog,lapSelected,hTrimMap,wTrimMap,hCar,wCar,hTrimMove,wTrimMove);
+carPosInv = carPos.*[1 -1];
 
 %%
 figure
 imshow(imgMap,RA)
 title("m")
 hold on
-plot(carPos(:,1),carPos(:,2))
+plot(carPosInv(:,1),carPosInv(:,2))
 % print("temp/m","-dtiffn","-r600")
 
 %%
@@ -37,8 +38,8 @@ hShow = 300/m2px;
 ratioShow = size(imgMap,2)/size(imgMap,1);
 wShow = ratioShow*hShow;
 
-xCurrent = carPos(1,1);
-yCurrent = carPos(1,2);
+xCurrent = carPosInv(1,1);
+yCurrent = carPosInv(1,2);
 
 % v = VideoWriter("temp/result_trackmap.mp4","MPEG-4");
 % v.FrameRate = 60;
@@ -47,8 +48,8 @@ yCurrent = carPos(1,2);
 f = figure("Visible","off");
 imshow(imgMap,RA)
 hold on
-plot(carPos(:,1),carPos(:,2))
-p = plot(carPos(1,1),carPos(1,2),'o','MarkerFaceColor','red');
+plot(carPosInv(:,1),carPosInv(:,2))
+p = plot(carPosInv(1,1),carPosInv(1,2),'o','MarkerFaceColor','red');
 xlabel("x [m]")
 ylabel("y [m]")
 xlim([xCurrent-wShow/2 xCurrent+wShow/2])
@@ -57,8 +58,8 @@ hold off
 f.Visible = "on";
 % writeVideo(v,getframe(f));
 for i = progress(2:length(listFrame),"UpdateRate",2)
-    xCurrent = carPos(i,1);
-    yCurrent = carPos(i,2);
+    xCurrent = carPosInv(i,1);
+    yCurrent = carPosInv(i,2);
     p.XData = xCurrent;
     p.YData = yCurrent;
     xlim([xCurrent-wShow/2 xCurrent+wShow/2])
