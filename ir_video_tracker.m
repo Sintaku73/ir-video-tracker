@@ -17,12 +17,17 @@ intervalFrame = 1;
 
 %%
 str = num2cell(listFrame);
+vectorYaw = [cosd(carYaw+90) sind(carYaw+90)];
+vectorYaw = vectorYaw./vecnorm(vectorYaw,2,2);
+
 figure
 plot(carPos(:,1),carPos(:,2),".-")
 axis equal
 grid on
-% hold on
+hold on
 % text(carPos(:,1),carPos(:,2),str)
+quiver(carPos(:,1),carPos(:,2),vectorYaw(:,1),vectorYaw(:,2),0.1)
+title('Car Position and Yaw Direction')
 
 %%
 % save(sprintf("input/line_%dHz.mat",v.FrameRate/intervalFrame),"carPos","carYaw","listFrame");

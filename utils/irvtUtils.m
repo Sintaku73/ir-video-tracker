@@ -117,7 +117,7 @@ classdef irvtUtils
             carPos = (carPos+linspace(0,1,nFrame).'.*shiftPos).*[1 -1];
 
             shiftAngle = tform.RotationAngle-carYaw(end);
-            carYaw = carYaw+linspace(0,1,nFrame).'.*shiftAngle;
+            carYaw = (carYaw+linspace(0,1,nFrame).'.*shiftAngle).*(-1);
         end
 
         function [carPos,yawValid,listFrame,m2px,imgMap,RA] = getTrackMapLog( ...
