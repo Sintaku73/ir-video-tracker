@@ -11,7 +11,7 @@ iFrame2 = 6229;
 frame1 = read(v,iFrame1);
 frame2 = read(v,iFrame2);
 
-% figure
+% figure("WindowStyle","docked")
 % imshowpair(frame1,frame2,"montage");
 
 %%
@@ -24,8 +24,9 @@ wTrim = 1790;
 trimmed1 = irvtUtils.trimImg(frame1,hTrim,wTrim);
 trimmed2 = irvtUtils.trimImg(frame2,hTrim,wTrim);
 
-figure
-imshowpair(trimmed1,trimmed2,"montage");
+figure("WindowStyle","docked")
+imshowpair(trimmed1,trimmed2,"montage")
+axis on
 
 %%
 gray1 = rgb2gray(trimmed1);
@@ -52,9 +53,10 @@ matched2 = validPts2(indexPairs(:,2));
 
 %%
 % Show putative point matches.
-figure
-showMatchedFeatures(gray1,gray2,matched1,matched2);
-title("Putatively matched points (including outliers)");
+figure("WindowStyle","docked")
+showMatchedFeatures(gray1,gray2,matched1,matched2)
+title("Putatively matched points (including outliers)")
+axis on
 
 %% Estimate Transformation
 % Identify a transformation based on matching point pairs with the
@@ -70,10 +72,11 @@ inlierOriginal = matched1(inlierIdx,:);
 %%
 % Display matching point pairs used in the computation of the
 % transformation.
-figure;
-showMatchedFeatures(trimmed1,trimmed2,inlierOriginal,inlierDistorted);
-title("Matching points (inliers only)");
-legend("pts1","pts2");
+figure("WindowStyle","docked")
+showMatchedFeatures(trimmed1,trimmed2,inlierOriginal,inlierDistorted)
+title("Matching points (inliers only)")
+legend("pts1","pts2")
+axis on
 
 %% Solve for Scale and Angle
 % Use the geometric transform, |tform|, to recover the scale and angle.
@@ -98,5 +101,6 @@ recovered = imwarp(trimmed2,tform,"OutputView",outputView);
 %%
 % Compare |recovered| to |original| by looking at them side-by-side in a
 % montage.
-figure
+figure("WindowStyle","docked")
 imshowpair(trimmed1,recovered,"falsecolor")
+axis on
