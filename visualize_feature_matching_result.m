@@ -5,18 +5,19 @@ close all
 addpath(fullfile(pwd,"utils"));
 
 %%
-v = VideoReader("input/iRacing.com Simulator 2025-04-21 00-14-39.mp4");
-iFrame1 = 185;
-iFrame2 = 6229;
-frame1 = read(v,iFrame1);
+vRef = VideoReader("input/iRacing.com Simulator 2025-04-21 00-14-39.mp4");
+v = VideoReader("input/iRacing.com Simulator 2025-04-21 00-25-11.mp4");
+iFrame1 = 895;
+iFrame2 = 979;
+frame1 = read(vRef,iFrame1);
 frame2 = read(v,iFrame2);
 
 % figure("WindowStyle","docked")
 % imshowpair(frame1,frame2,"montage");
 
 %%
-hImg = v.Height;
-wImg = v.Width;
+hImg = vRef.Height;
+wImg = vRef.Width;
 hTrim = 720;
 wTrim = 1790;
 
