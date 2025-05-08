@@ -29,7 +29,7 @@ lapDistPct = lapDist./max(lapDist).*100;
 %%
 yawNorthRef = rad2deg(dataRef.yawValid)-90;
 hTrim = 720;
-wTrim = 1790;
+wTrim = 960;
 carCoG = [wTrim/2+0.5 hTrim/2+0.5];
 carPos = zeros(length(listFrame),2);
 carYaw = zeros(length(listFrame),1);
@@ -61,6 +61,8 @@ end
 load("temp\carpos_sfl_comp.mat")
 
 %% visualize the result
+vectorYawRef = [cos(dataRef.yawValid.') sin(dataRef.yawValid.')];
+vectorYawRef = vectorYawRef./vecnorm(vectorYawRef,2,2);
 vectorYaw = [cos(carYaw) sin(carYaw)];
 vectorYaw = vectorYaw./vecnorm(vectorYaw,2,2);
 
@@ -70,12 +72,12 @@ axis equal
 grid on
 hold on
 plot(dataRef.carPos(:,1),dataRef.carPos(:,2))
-scatter(dataRef.carPos(:,1),dataRef.carPos(:,2),30,dataRef.listFrame,"filled")
+% scatter(dataRef.carPos(:,1),dataRef.carPos(:,2),30,dataRef.listFrame,"filled")
 quiver(carPos(:,1),carPos(:,2),vectorYaw(:,1),vectorYaw(:,2),"off")
-% scatter(carPos(:,1),carPos(:,2),5,rad2deg(carYaw))
-scatter(carPos(:,1),carPos(:,2),30,listIdxNearest,"filled")
-clim([min(listIdxNearest(listIdxNearest>0)) max(listIdxNearest(listIdxNearest>0))])
-colorbar
+quiver(dataRef.carPos(:,1),dataRef.carPos(:,2),vectorYawRef(:,1),vectorYawRef(:,2),"off")
+% scatter(carPos(:,1),carPos(:,2),30,listIdxNearest,"filled")
+% clim([min(listIdxNearest(listIdxNearest>0)) max(listIdxNearest(listIdxNearest>0))])
+% colorbar
 
 %%
 % figure("WindowStyle","docked")

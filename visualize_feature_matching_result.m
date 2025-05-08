@@ -19,7 +19,7 @@ frame2 = read(v,iFrame2);
 hImg = vRef.Height;
 wImg = vRef.Width;
 hTrim = 720;
-wTrim = 1790;
+wTrim = 960;
 
 %%
 trimmed1 = irvtUtils.trimImg(frame1,hTrim,wTrim);
