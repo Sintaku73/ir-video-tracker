@@ -12,8 +12,8 @@ v = VideoReader("input/iRacing.com Simulator 2025-04-21 00-14-39.mp4");
 %%
 hTrim = 300;
 wTrim = hTrim;
-hCut = 60;
-wCut = 30;
+hCar = 60;
+wCar = 30;
 
 posInt = round(carPos);
 posFlip = flip(posInt,2);
@@ -26,8 +26,8 @@ imgMap = zeros(sizeMap(1),sizeMap(2),3,"uint8");
 for i = progress(1:length(listFrame),"UpdateRate",2)
     nFrame = listFrame(i);
     frameCurrent = irvtUtils.trimImg(read(v,nFrame),hTrim,wTrim);
-    frameCurrent = irvtUtils.deleteAroundCar(frameCurrent,hCut,wCut);
-    frameCurrent = imrotate(frameCurrent,-cumAngle(i),"crop");
+    frameCurrent = irvtUtils.deleteAroundCar(frameCurrent,hCar,wCar);
+    frameCurrent = imrotate(frameCurrent,carYaw(i),"crop");
     idxStart = posFlip(i,:)+shiftMap;
     idxEnd = idxStart+[hTrim wTrim]-1;
     imgTemp = imgMap(idxStart(1):idxEnd(1), idxStart(2):idxEnd(2),:);
