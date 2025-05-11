@@ -120,7 +120,7 @@ classdef irvtUtils
             carYaw = (carYaw+linspace(0,1,nFrame).'.*shiftAngle).*(-1);
         end
 
-        function [carPos,yawValid,listFrame,m2px,imgMap,RA] = getTrackMapLog( ...
+        function [carPos,yawValid,listFrame,m2px,imgMap,RA,lat0,lon0,h0] = getTrackMapLog( ...
                 v,iFrameStart,pathLog,lapSelected,hTrimMap,wTrimMap,hCar,wCar,hTrimMove,wTrimMove)
             arguments
                 v (1,1) VideoReader
@@ -147,7 +147,10 @@ classdef irvtUtils
             gpsAltValid = GPS_Altitude.Value(idxValid);
             yawValid = (YawNorth.Value(idxValid)-pi/2).*(-1);
 
-            [x,y,~] = matmap3d.geodetic2enu(gpsLatValid,gpsLonValid,gpsAltValid,gpsLatValid(1),gpsLonValid(1),gpsAltValid(1));
+            lat0 = gpsLatValid(1);
+            lon0 = gpsLonValid(1);
+            h0 = gpsAltValid(1);
+            [x,y,~] = matmap3d.geodetic2enu(gpsLatValid,gpsLonValid,gpsAltValid,lat0,lon0,h0);
             carPos = [x.' y.'];
             carPosInv = carPos.*[1 -1];
 

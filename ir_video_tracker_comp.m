@@ -5,8 +5,8 @@ clear
 %%
 addpath(fullfile(pwd,"utils"));
 
-dataRef = load("input/reference_lap.mat","RA","carPos","imgMap","listFrame","m2px","yawValid");
-dataRef.v = VideoReader("input/iRacing.com Simulator 2025-04-21 00-14-39.mp4");
+dataRef = load("input/reference_lap.mat");
+vRef = VideoReader(dataRef.pathVideo);
 
 %%
 v = VideoReader("input/iRacing.com Simulator 2025-04-21 00-25-11.mp4");
@@ -14,11 +14,11 @@ iFrameStart = 156;
 iFrameEnd = 7070;
 intervalFrame = 1;
 
-[carPos,~,listFrame] = irvtUtils.getCarPos(v,iFrameStart,iFrameEnd);
+% [carPos,~,listFrame] = irvtUtils.getCarPos(v,iFrameStart,iFrameEnd);
 
 %%
 % save("temp\carpos_sfl.mat","carPos","listFrame");
-% load("temp/carpos_sfl.mat");
+load("temp/carpos_sfl.mat");
 
 %%
 lapDistRef = cumsum([0; vecnorm(diff(dataRef.carPos),2,2)]);
@@ -42,7 +42,7 @@ for i = progress(1:length(listFrame),"UpdateRate",2)
     iFrameCurrent = listFrame(i);
     listIdxNearest(i) = idxRefNearest;
 
-    frameRef = read(dataRef.v,iFrameRef);
+    frameRef = read(vRef,iFrameRef);
     frameCurrent = read(v,iFrameCurrent);
     trimmedRef = irvtUtils.trimImg(frameRef,hTrim,wTrim);
     trimmedCurrent = irvtUtils.trimImg(frameCurrent,hTrim,wTrim);
@@ -58,7 +58,7 @@ end
 
 %%
 % save("temp\carpos_sfl_comp.mat","carPos","carYaw","listIdxNearest")
-% load("temp\carpos_sfl_comp.mat")
+load("temp\carpos_sfl_comp.mat")
 
 %%
 figure("WindowStyle","docked")
@@ -81,23 +81,23 @@ load("input\superformulalights324_suzuka grandprix 2025-04-20 18-37-17_Stint_1.m
     "Lap","Latitude_Degrees","Latitude_Minutes","Latitude_Minute_fraction", ...
     "Longitude_Degrees","Longitude_Minutes","Longitude_Minute___fraction","GPS_Altitude","YawNorth");
 
-gpsLat = Latitude_Degrees.Value + Latitude_Minutes.Value./60 + Latitude_Minute_fraction.Value./3600;
-gpsLon = Longitude_Degrees.Value + Longitude_Minutes.Value./60 + Longitude_Minute___fraction.Value./3600;
+gpsLatLog = Latitude_Degrees.Value + Latitude_Minutes.Value./60 + Latitude_Minute_fraction.Value./3600;
+gpsLonLog = Longitude_Degrees.Value + Longitude_Minutes.Value./60 + Longitude_Minute___fraction.Value./3600;
 
 %%
 figure("WindowStyle","docked")
-geoplot(gpsLat,gpsLon)
+geoplot(gpsLatLog,gpsLonLog)
 geobasemap none
 
 %%
 lapSelected = 2;
 idxValid = Lap.Value==lapSelected;
-gpsLatValid = gpsLat(idxValid);
-gpsLonValid = gpsLon(idxValid);
+gpsLatValid = gpsLatLog(idxValid);
+gpsLonValid = gpsLonLog(idxValid);
 gpsAltValid = GPS_Altitude.Value(idxValid);
 yawValidLog = (YawNorth.Value(idxValid)-pi/2).*(-1);
 
-[x,y,~] = matmap3d.geodetic2enu(gpsLatValid,gpsLonValid,gpsAltValid,gpsLatValid(1),gpsLonValid(1),gpsAltValid(1));
+[x,y,~] = matmap3d.geodetic2enu(gpsLatValid,gpsLonValid,gpsAltValid,dataRef.lat0,dataRef.lon0,dataRef.h0);
 carPosLog = [x.' y.'];
 
 %% visualize the result
@@ -142,3 +142,38 @@ legend
 
 %%
 disp(mean(abs(rad2deg(diffCalcLog))))
+
+%% convert to GPS coordinates
+[gpsLat,gpsLon,~] = matmap3d.enu2geodetic(carPos(:,1),carPos(:,2),zeros(length(carPos),1), ...
+    dataRef.lat0,dataRef.lon0,dataRef.h0);
+
+figure("WindowStyle","docked")
+geoplot(gpsLatValid,gpsLonValid,"DisplayName","log")
+hold on
+geoplot(gpsLat,gpsLon,"DisplayName","calculated")
+legend
+
+%% convert dgrees to DMS
+function [dms] = deg2dms(deg)
+dms = zeros(length(deg),3);
+dms(:,1) = floor(deg);
+dms(:,2) = floor((deg-dms(:,1))*60);
+dms(:,3) = (deg-dms(:,1)-dms(:,2)/60)*3600;
+end
+
+%% export to table
+gpsLatDms = deg2dms(gpsLat);
+gpsLonDms = deg2dms(gpsLon);
+
+tableExport = table;
+tableExport.("Time (s)") = transpose(0:1/v.FrameRate:(length(carPos)-1)/v.FrameRate);
+tableExport.("Latitude Degrees ()") = gpsLatDms(:,1);
+tableExport.("Latitude Minutes ()") = gpsLatDms(:,2);
+tableExport.("Latitude Minute fraction ()") = gpsLatDms(:,3);
+tableExport.("Longitude Degrees ()") = gpsLonDms(:,1);
+tableExport.("Longitude Minutes ()") = gpsLonDms(:,2);
+tableExport.("Longitude Minute - fraction ()") = gpsLonDms(:,3);
+tableExport.("YawNorth (rad)") = carYaw.*(-1)+pi/2;
+tableExport.("AP Info:") = zeros(length(carPos),1);
+
+writetable(tableExport,"temp\suzuka_sfl.csv")
