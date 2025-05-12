@@ -36,7 +36,6 @@ carYaw = zeros(length(listFrame),1);
 listIdxNearest = zeros(length(listFrame),1);
 %%
 for i = progress(1:length(listFrame),"UpdateRate",2)
-% for i = progress(901:1000,"UpdateRate",2)
     [~,idxRefNearest] = min(abs(lapDistPctRef-lapDistPct(i)));
     iFrameRef = dataRef.listFrame(idxRefNearest);
     iFrameCurrent = listFrame(i);
@@ -161,12 +160,21 @@ dms(:,2) = floor((deg-dms(:,1))*60);
 dms(:,3) = (deg-dms(:,1)-dms(:,2)/60)*3600;
 end
 
+function cdiff = centerdiff(data,dt)
+cdiff_ = (data(3:end)-data(1:end-2))/2/dt;
+cdiff = [cdiff_(1); cdiff_; cdiff_(end)];
+end
+
 %% export to table
 gpsLatDms = deg2dms(gpsLat);
 gpsLonDms = deg2dms(gpsLon);
 
+lapDist = cumsum([0; vecnorm(diff(carPos),2,2)]);
+groundSpeed = centerdiff(lapDist,1/v.FrameRate)*3.6;
+
 tableExport = table;
 tableExport.("Time (s)") = transpose(0:1/v.FrameRate:(length(carPos)-1)/v.FrameRate);
+tableExport.("Ground Speed (km/h)") = groundSpeed;
 tableExport.("Latitude Degrees ()") = gpsLatDms(:,1);
 tableExport.("Latitude Minutes ()") = gpsLatDms(:,2);
 tableExport.("Latitude Minute fraction ()") = gpsLatDms(:,3);
