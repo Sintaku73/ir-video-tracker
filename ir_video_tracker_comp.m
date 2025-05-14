@@ -78,7 +78,7 @@ colorbar
 %% evaluate the result with comparison to GPS data
 load("input\superformulalights324_suzuka grandprix 2025-04-20 18-37-17_Stint_1.mat", ...
     "Lap","Latitude_Degrees","Latitude_Minutes","Latitude_Minute_fraction", ...
-    "Longitude_Degrees","Longitude_Minutes","Longitude_Minute___fraction","GPS_Altitude","YawNorth");
+    "Longitude_Degrees","Longitude_Minutes","Longitude_Minute___fraction","GPS_Altitude","YawNorth","Ground_Speed");
 
 gpsLatLog = Latitude_Degrees.Value + Latitude_Minutes.Value./60 + Latitude_Minute_fraction.Value./3600;
 gpsLonLog = Longitude_Degrees.Value + Longitude_Minutes.Value./60 + Longitude_Minute___fraction.Value./3600;
@@ -95,6 +95,9 @@ gpsLatValid = gpsLatLog(idxValid);
 gpsLonValid = gpsLonLog(idxValid);
 gpsAltValid = GPS_Altitude.Value(idxValid);
 yawValidLog = (YawNorth.Value(idxValid)-pi/2).*(-1);
+groundSpeedValid = Ground_Speed.Value(idxValid);
+timeValid = Ground_Speed.Time(idxValid);
+timeValid = timeValid-timeValid(1);
 
 [x,y,~] = matmap3d.geodetic2enu(gpsLatValid,gpsLonValid,gpsAltValid,dataRef.lat0,dataRef.lon0,dataRef.h0);
 carPosLog = [x.' y.'];
@@ -170,11 +173,41 @@ gpsLatDms = deg2dms(gpsLat);
 gpsLonDms = deg2dms(gpsLon);
 
 lapDist = cumsum([0; vecnorm(diff(carPos),2,2)]);
-groundSpeed = centerdiff(lapDist,1/v.FrameRate)*3.6;
 
+%%
+% Smooth input data
+[lapDistSmoothed,winSize] = smoothdata(lapDist,"rloess",1,"SamplePoints",tableExport.("Time (s)"));
+speed = centerdiff(lapDistSmoothed,1/v.FrameRate);
+
+% Display results
+figure("WindowStyle","docked")
+tiledlayout(2,1)
+ax1 = nexttile;
+plot(tableExport.("Time (s)"),lapDist,"DisplayName","Input data")
+hold on
+plot(tableExport.("Time (s)"),lapDistSmoothed,"DisplayName","Smoothed data")
+legend
+
+% figure("WindowStyle","docked")
+ax2 = nexttile;
+plot(tableExport.("Time (s)"),centerdiff(lapDist,1/v.FrameRate)*3.6, ...
+    "SeriesIndex",6,"DisplayName","Without smoothing")
+hold on
+plot(tableExport.("Time (s)"),speed*3.6,"SeriesIndex",1,"LineWidth",1.5, ...
+    "DisplayName","Smoothed data")
+plot(timeValid,groundSpeedValid,"SeriesIndex",2,"LineWidth",1.5, ...
+    "DisplayName","Logged data")
+hold off
+title("Moving window size: " + string(winSize));
+legend
+xlabel("Time (s)")
+linkaxes([ax1 ax2],"x")
+clear winSize
+
+%%
 tableExport = table;
 tableExport.("Time (s)") = transpose(0:1/v.FrameRate:(length(carPos)-1)/v.FrameRate);
-tableExport.("Ground Speed (km/h)") = groundSpeed;
+tableExport.("Ground Speed (km/h)") = speed*3.6;
 tableExport.("Latitude Degrees ()") = gpsLatDms(:,1);
 tableExport.("Latitude Minutes ()") = gpsLatDms(:,2);
 tableExport.("Latitude Minute fraction ()") = gpsLatDms(:,3);
@@ -184,4 +217,4 @@ tableExport.("Longitude Minute - fraction ()") = gpsLonDms(:,3);
 tableExport.("YawNorth (rad)") = carYaw.*(-1)+pi/2;
 tableExport.("AP Info:") = zeros(length(carPos),1);
 
-writetable(tableExport,"temp\suzuka_sfl.csv")
+% writetable(tableExport,"temp\suzuka_sfl.csv")
