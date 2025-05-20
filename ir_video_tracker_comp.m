@@ -17,7 +17,7 @@ intervalFrame = 1;
 % [carPos,~,listFrame] = irvtUtils.getCarPos(v,iFrameStart,iFrameEnd);
 
 %%
-% save("temp\carpos_sfl.mat","carPos","listFrame");
+% save("temp/carpos_sfl.mat","carPos","listFrame");
 load("temp/carpos_sfl.mat");
 
 %%
@@ -56,8 +56,8 @@ for i = progress(1:length(listFrame),"UpdateRate",2)
 end
 
 %%
-% save("temp\carpos_sfl_comp.mat","carPos","carYaw","listIdxNearest")
-load("temp\carpos_sfl_comp.mat")
+% save("temp/carpos_sfl_comp.mat","carPos","carYaw","listIdxNearest")
+load("temp/carpos_sfl_comp.mat")
 
 %%
 figure("WindowStyle","docked")
@@ -76,7 +76,7 @@ end
 colorbar
 
 %% evaluate the result with comparison to GPS data
-load("input\superformulalights324_suzuka grandprix 2025-04-20 18-37-17_Stint_1.mat", ...
+load("input/superformulalights324_suzuka grandprix 2025-04-20 18-37-17_Stint_1.mat", ...
     "Lap","Latitude_Degrees","Latitude_Minutes","Latitude_Minute_fraction", ...
     "Longitude_Degrees","Longitude_Minutes","Longitude_Minute___fraction","GPS_Altitude","YawNorth","Ground_Speed");
 
@@ -172,41 +172,64 @@ end
 gpsLatDms = deg2dms(gpsLat);
 gpsLonDms = deg2dms(gpsLon);
 
-lapDist = cumsum([0; vecnorm(diff(carPos),2,2)]);
+posNorm = [0; vecnorm(diff(carPos),2,2)];
+lapDist = cumsum(posNorm);
 
 %%
+dTime = 1/v.FrameRate;
+
 % Smooth input data
-[lapDistSmoothed,winSize] = smoothdata(lapDist,"rloess",1,"SamplePoints",tableExport.("Time (s)"));
-speed = centerdiff(lapDistSmoothed,1/v.FrameRate);
+time = transpose(0:dTime:(length(carPos)-1)/v.FrameRate);
+[lapDistSmoothed,winSize] = smoothdata(lapDist,"rloess",1,"SamplePoints",time);
+% splDist = py.scipy.interpolate.UnivariateSpline(time,lapDist,s=1e2);
+% splSpeed = splDist.derivative(int16(1));
+
+g = 9.81;
+gLon = 4*del2(lapDist,dTime)./g;
+
+speed = centerdiff(lapDistSmoothed,dTime);
+% speedSpl = double(splSpeed(time));
+
+figure("WindowStyle","docked")
+plot(time,gLon)
+hold on
+plot(time(1:end-2),diff(lapDist,2)./dTime^2./g)
+
+%%
+speedNoSmooth = centerdiff(lapDist,dTime);
 
 % Display results
 figure("WindowStyle","docked")
-tiledlayout(2,1)
+tiledlayout(1,2)
 ax1 = nexttile;
-plot(tableExport.("Time (s)"),lapDist,"DisplayName","Input data")
+plot(time,lapDist,"DisplayName","Input data")
 hold on
-plot(tableExport.("Time (s)"),lapDistSmoothed,"DisplayName","Smoothed data")
+plot(time,lapDistSmoothed,"DisplayName","Smoothed data")
+% plot(time,splDist(time),"DisplayName","Smoothed spline")
+grid on
 legend
 
 % figure("WindowStyle","docked")
 ax2 = nexttile;
-plot(tableExport.("Time (s)"),centerdiff(lapDist,1/v.FrameRate)*3.6, ...
+plot(time,speedNoSmooth*3.6, ...
     "SeriesIndex",6,"DisplayName","Without smoothing")
 hold on
-plot(tableExport.("Time (s)"),speed*3.6,"SeriesIndex",1,"LineWidth",1.5, ...
+plot(time,speed*3.6,"SeriesIndex",1,"LineWidth",1.5, ...
     "DisplayName","Smoothed data")
+% plot(time,speedSpl*3.6,"SeriesIndex",3,"LineWidth",1.5, ...
+%     "DisplayName","Smoothed spline")
 plot(timeValid,groundSpeedValid,"SeriesIndex",2,"LineWidth",1.5, ...
     "DisplayName","Logged data")
+grid on
 hold off
 title("Moving window size: " + string(winSize));
 legend
 xlabel("Time (s)")
 linkaxes([ax1 ax2],"x")
-clear winSize
 
 %%
 tableExport = table;
-tableExport.("Time (s)") = transpose(0:1/v.FrameRate:(length(carPos)-1)/v.FrameRate);
+tableExport.("Time (s)") = time;
 tableExport.("Ground Speed (km/h)") = speed*3.6;
 tableExport.("Latitude Degrees ()") = gpsLatDms(:,1);
 tableExport.("Latitude Minutes ()") = gpsLatDms(:,2);
@@ -217,4 +240,4 @@ tableExport.("Longitude Minute - fraction ()") = gpsLonDms(:,3);
 tableExport.("YawNorth (rad)") = carYaw.*(-1)+pi/2;
 tableExport.("AP Info:") = zeros(length(carPos),1);
 
-% writetable(tableExport,"temp\suzuka_sfl.csv")
+% writetable(tableExport,"temp/suzuka_sfl.csv")
