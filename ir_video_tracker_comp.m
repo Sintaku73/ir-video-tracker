@@ -172,8 +172,8 @@ end
 gpsLatDms = deg2dms(gpsLat);
 gpsLonDms = deg2dms(gpsLon);
 
-posNorm = [0; vecnorm(diff(carPos),2,2)];
-lapDist = cumsum(posNorm);
+posNorm = vecnorm(diff(carPos),2,2);
+lapDist = cumsum([0; posNorm]);
 
 %%
 dTime = 1/v.FrameRate;
@@ -181,48 +181,65 @@ dTime = 1/v.FrameRate;
 % Smooth input data
 time = transpose(0:dTime:(length(carPos)-1)/v.FrameRate);
 [lapDistSmoothed,winSize] = smoothdata(lapDist,"rloess",1,"SamplePoints",time);
-% splDist = py.scipy.interpolate.UnivariateSpline(time,lapDist,s=1e2);
-% splSpeed = splDist.derivative(int16(1));
+splDist = py.scipy.interpolate.UnivariateSpline(time,lapDist,s=1e2);
+splSpeed = splDist.derivative(int16(1));
 
 g = 9.81;
 gLon = 4*del2(lapDist,dTime)./g;
 
-speed = centerdiff(lapDistSmoothed,dTime);
-% speedSpl = double(splSpeed(time));
+speed = [posNorm; posNorm(end)]./dTime;
+speedSpl = double(splSpeed(time));
+speedGradDist = gradient(lapDistSmoothed,dTime);
 
-figure("WindowStyle","docked")
-plot(time,gLon)
-hold on
-plot(time(1:end-2),diff(lapDist,2)./dTime^2./g)
+[speedSmoothed,winSize2] = smoothdata(speed,"gaussian",1,"SamplePoints",time);
+
+% Fill outliers before smoothing
+speedDeletedOutliers = filloutliers(speed,"center","movmedian",1,"ThresholdFactor",5,"SamplePoints",time);
+speedCleaned = smoothdata(speedDeletedOutliers,"gaussian",1,"SamplePoints",time);
+
+% Use scipy univariate spline directly
+splSpeedDirect = py.scipy.interpolate.UnivariateSpline(time,speedDeletedOutliers,s=6.5*1e5);
+speedSplDirect = double(splSpeedDirect(time));
+
+% figure("WindowStyle","docked")
+% plot(time,gLon)
+% hold on
+% plot(time(1:end-2),diff(lapDist,2)./dTime^2./g)
 
 %%
-speedNoSmooth = centerdiff(lapDist,dTime);
+speedNoSmooth = gradient(lapDist,dTime);
 
 % Display results
 figure("WindowStyle","docked")
-tiledlayout(1,2)
-ax1 = nexttile;
-plot(time,lapDist,"DisplayName","Input data")
-hold on
-plot(time,lapDistSmoothed,"DisplayName","Smoothed data")
-% plot(time,splDist(time),"DisplayName","Smoothed spline")
-grid on
-legend
+% tiledlayout(1,2)
+% ax1 = nexttile;
+% plot(time,lapDist,"DisplayName","Input data")
+% hold on
+% plot(time,lapDistSmoothed,"DisplayName","Smoothed data")
+% % plot(time,splDist(time),"DisplayName","Smoothed spline")
+% grid on
+% title("Moving window size: " + string(winSize));
+% legend
 
-% figure("WindowStyle","docked")
-ax2 = nexttile;
+% ax2 = nexttile;
 plot(time,speedNoSmooth*3.6, ...
     "SeriesIndex",6,"DisplayName","Without smoothing")
 hold on
-plot(time,speed*3.6,"SeriesIndex",1,"LineWidth",1.5, ...
-    "DisplayName","Smoothed data")
-% plot(time,speedSpl*3.6,"SeriesIndex",3,"LineWidth",1.5, ...
-%     "DisplayName","Smoothed spline")
+plot(time,speedSmoothed*3.6,"SeriesIndex",1,"LineWidth",1.5, ...
+    "DisplayName","Smoothed data (directly)")
+plot(time,speedSpl*3.6,"SeriesIndex",3,"LineWidth",1.5, ...
+    "DisplayName","Smoothed spline")
+plot(time,speedGradDist*3.6,"SeriesIndex",4,"LineWidth",1.5, ...
+    "DisplayName","Smoothed grad")
+plot(time,speedCleaned*3.6,"SeriesIndex",5,"LineWidth",1.5, ...
+    "DisplayName","Fill outliers")
+plot(time,speedSplDirect*3.6,"SeriesIndex",7,"LineWidth",1.5, ...
+    "DisplayName","Smoothed spline (directly)")
 plot(timeValid,groundSpeedValid,"SeriesIndex",2,"LineWidth",1.5, ...
     "DisplayName","Logged data")
 grid on
 hold off
-title("Moving window size: " + string(winSize));
+title("Moving window size: " + string(winSize2));
 legend
 xlabel("Time (s)")
 linkaxes([ax1 ax2],"x")
