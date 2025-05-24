@@ -5,8 +5,8 @@ clear
 %%
 addpath(fullfile(pwd,"utils"));
 
-dataRef = load("input/reference_lap.mat","RA","carPos","imgMap","listFrame","m2px","yawValid");
-dataRef.v = VideoReader("input/iRacing.com Simulator 2025-04-21 00-14-39.mp4");
+dataRef = load("input/reference_lap.mat");
+vRef = VideoReader(dataRef.pathVideo);
 
 %%
 v = VideoReader("input/iRacing.com Simulator 2025-04-21 00-25-11.mp4");
@@ -17,7 +17,7 @@ intervalFrame = 1;
 [carPos,~,listFrame] = irvtUtils.getCarPos(v,iFrameStart,iFrameEnd);
 
 %%
-% save("temp\carpos_sfl.mat","carPos","listFrame");
+% save("temp/carpos_sfl.mat","carPos","listFrame");
 % load("temp/carpos_sfl.mat");
 
 %%
@@ -36,13 +36,12 @@ carYaw = zeros(length(listFrame),1);
 listIdxNearest = zeros(length(listFrame),1);
 %%
 for i = progress(1:length(listFrame),"UpdateRate",2)
-% for i = progress(901:1000,"UpdateRate",2)
     [~,idxRefNearest] = min(abs(lapDistPctRef-lapDistPct(i)));
     iFrameRef = dataRef.listFrame(idxRefNearest);
     iFrameCurrent = listFrame(i);
     listIdxNearest(i) = idxRefNearest;
 
-    frameRef = read(dataRef.v,iFrameRef);
+    frameRef = read(vRef,iFrameRef);
     frameCurrent = read(v,iFrameCurrent);
     trimmedRef = irvtUtils.trimImg(frameRef,hTrim,wTrim);
     trimmedCurrent = irvtUtils.trimImg(frameCurrent,hTrim,wTrim);
@@ -57,8 +56,8 @@ for i = progress(1:length(listFrame),"UpdateRate",2)
 end
 
 %%
-% save("temp\carpos_sfl_comp.mat","carPos","carYaw","listIdxNearest")
-% load("temp\carpos_sfl_comp.mat")
+% save("temp/carpos_sfl_comp.mat","carPos","carYaw","listIdxNearest")
+% load("temp/carpos_sfl_comp.mat")
 
 %%
 figure("WindowStyle","docked")
@@ -77,27 +76,30 @@ end
 colorbar
 
 %% evaluate the result with comparison to GPS data
-load("input\superformulalights324_suzuka grandprix 2025-04-20 18-37-17_Stint_1.mat", ...
+load("input/superformulalights324_suzuka grandprix 2025-04-20 18-37-17_Stint_1.mat", ...
     "Lap","Latitude_Degrees","Latitude_Minutes","Latitude_Minute_fraction", ...
-    "Longitude_Degrees","Longitude_Minutes","Longitude_Minute___fraction","GPS_Altitude","YawNorth");
+    "Longitude_Degrees","Longitude_Minutes","Longitude_Minute___fraction","GPS_Altitude","YawNorth","Ground_Speed");
 
-gpsLat = Latitude_Degrees.Value + Latitude_Minutes.Value./60 + Latitude_Minute_fraction.Value./3600;
-gpsLon = Longitude_Degrees.Value + Longitude_Minutes.Value./60 + Longitude_Minute___fraction.Value./3600;
+gpsLatLog = Latitude_Degrees.Value + Latitude_Minutes.Value./60 + Latitude_Minute_fraction.Value./3600;
+gpsLonLog = Longitude_Degrees.Value + Longitude_Minutes.Value./60 + Longitude_Minute___fraction.Value./3600;
 
 %%
 figure("WindowStyle","docked")
-geoplot(gpsLat,gpsLon)
+geoplot(gpsLatLog,gpsLonLog)
 geobasemap none
 
 %%
 lapSelected = 2;
 idxValid = Lap.Value==lapSelected;
-gpsLatValid = gpsLat(idxValid);
-gpsLonValid = gpsLon(idxValid);
+gpsLatValid = gpsLatLog(idxValid);
+gpsLonValid = gpsLonLog(idxValid);
 gpsAltValid = GPS_Altitude.Value(idxValid);
 yawValidLog = (YawNorth.Value(idxValid)-pi/2).*(-1);
+groundSpeedValid = Ground_Speed.Value(idxValid);
+timeValid = Ground_Speed.Time(idxValid);
+timeValid = timeValid-timeValid(1);
 
-[x,y,~] = matmap3d.geodetic2enu(gpsLatValid,gpsLonValid,gpsAltValid,gpsLatValid(1),gpsLonValid(1),gpsAltValid(1));
+[x,y,~] = matmap3d.geodetic2enu(gpsLatValid,gpsLonValid,gpsAltValid,dataRef.lat0,dataRef.lon0,dataRef.h0);
 carPosLog = [x.' y.'];
 
 %% visualize the result
@@ -118,10 +120,6 @@ plot(carPosLog(:,1),carPosLog(:,2),"DisplayName","log")
 quiver(dataRef.carPos(:,1),dataRef.carPos(:,2),vectorYawRef(:,1),vectorYawRef(:,2),"off","DisplayName","v(reference)")
 quiver(carPos(:,1),carPos(:,2),vectorYaw(:,1),vectorYaw(:,2),"off","DisplayName","v(calculated)")
 quiver(carPosLog(:,1),carPosLog(:,2),vectorYawLog(:,1),vectorYawLog(:,2),"off","DisplayName","v(log)")
-% scatter(dataRef.carPos(:,1),dataRef.carPos(:,2),30,dataRef.listFrame,"filled")
-% scatter(carPos(:,1),carPos(:,2),30,listIdxNearest,"filled")
-% clim([min(listIdxNearest(listIdxNearest>0)) max(listIdxNearest(listIdxNearest>0))])
-% colorbar
 legend
 
 %%
@@ -130,15 +128,67 @@ thDiffOvershoot = 2*pi*0.9;
 diffCalcLog = carYaw-yawValidLogResampled.';
 diffCalcLog = diffCalcLog(abs(diffCalcLog)<thDiffOvershoot);
 
-
-figure("WindowStyle","docked")
-area(rad2deg(diffCalcLog))
-
 figure("WindowStyle","docked")
 plot(rad2deg(carYaw),"DisplayName","calculated")
 hold on
 plot(rad2deg(yawValidLogResampled),"DisplayName","log")
 legend
+title("Comparison of yaw North (deg)");
+xlabel("Frame")
+ylabel("Yaw North (deg)")
 
 %%
-disp(mean(abs(rad2deg(diffCalcLog))))
+disp("Mean absolute error (deg): " + mean(abs(rad2deg(diffCalcLog))))
+
+%% convert to GPS coordinates
+[gpsLat,gpsLon,~] = matmap3d.enu2geodetic(carPos(:,1),carPos(:,2),zeros(length(carPos),1), ...
+    dataRef.lat0,dataRef.lon0,dataRef.h0);
+
+figure("WindowStyle","docked")
+geoplot(gpsLatValid,gpsLonValid,"DisplayName","log")
+hold on
+geoplot(gpsLat,gpsLon,"DisplayName","calculated")
+legend
+
+%% convert degrees to DMS
+gpsLatDms = irvtUtils.deg2dms(gpsLat);
+gpsLonDms = irvtUtils.deg2dms(gpsLon);
+
+%% calculate speed
+dTime = 1/v.FrameRate;
+time = transpose(0:dTime:(length(carPos)-1)/v.FrameRate);
+posNorm = vecnorm(diff(carPos),2,2);
+speed = [posNorm; posNorm(end)]./dTime;
+
+% Fill outliers before smoothing
+speedInliers = filloutliers(speed,"center","movmedian",1,"ThresholdFactor",5,"SamplePoints",time);
+% Smooth input data
+speedSmoothed = smoothdata(speedInliers,"gaussian",1,"SamplePoints",time);
+
+%% display results
+figure("WindowStyle","docked")
+plot(time,speed*3.6,"LineWidth",1.5,"DisplayName","Raw data")
+hold on
+plot(time,speedSmoothed*3.6,"LineWidth",1.5,"DisplayName","Smoothed data")
+plot(timeValid,groundSpeedValid,"LineWidth",1.5,"DisplayName","Logged data")
+grid on
+title("Comparison of ground speed (km/h)");
+legend
+xlabel("Time (s)")
+ylabel("Ground Speed (km/h)")
+
+%% export to table
+tableExport = table;
+tableExport.("Time (s)") = time;
+tableExport.("Lap Distance (m)") = cumtrapz(time,speedSmoothed);
+tableExport.("Ground Speed (km/h)") = speedSmoothed*3.6;
+tableExport.("Latitude Degrees ()") = gpsLatDms(:,1);
+tableExport.("Latitude Minutes ()") = gpsLatDms(:,2);
+tableExport.("Latitude Minute fraction ()") = gpsLatDms(:,3);
+tableExport.("Longitude Degrees ()") = gpsLonDms(:,1);
+tableExport.("Longitude Minutes ()") = gpsLonDms(:,2);
+tableExport.("Longitude Minute - fraction ()") = gpsLonDms(:,3);
+tableExport.("YawNorth (rad)") = carYaw.*(-1)+pi/2;
+tableExport.("AP Info:") = zeros(length(carPos),1);
+
+writetable(tableExport,"temp/suzuka_sfl.csv")

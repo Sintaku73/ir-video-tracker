@@ -5,7 +5,8 @@ clear
 %%
 addpath(fullfile(pwd,"utils"));
 
-v = VideoReader("input/iRacing.com Simulator 2025-04-21 00-14-39.mp4");
+pathVideo = "input/iRacing.com Simulator 2025-04-21 00-14-39.mp4";
+v = VideoReader(pathVideo);
 
 pathLog = "input\superformulasf23 toyota_suzuka grandprix 2025-04-20 18-23-54_Stint_3.mat";
 lapSelected = 3;
@@ -18,7 +19,7 @@ hTrimMove = 720;
 wTrimMove = 1790;
 
 %%
-[carPos,yawValid,listFrame,m2px,imgMap,RA] = irvtUtils.getTrackMapLog( ...
+[carPos,yawValid,listFrame,m2px,imgMap,RA,lat0,lon0,h0] = irvtUtils.getTrackMapLog( ...
     v,iFrameStart,pathLog,lapSelected,hTrimMap,wTrimMap,hCar,wCar,hTrimMove,wTrimMove);
 carPosInv = carPos.*[1 -1];
 
@@ -31,7 +32,7 @@ plot(carPosInv(:,1),carPosInv(:,2))
 % print("temp/m","-dtiffn","-r600")
 
 %%
-save("input\reference_lap.mat","v","listFrame","carPos","yawValid","m2px","imgMap","RA");
+save("input\reference_lap.mat","pathVideo","listFrame","carPos","yawValid","m2px","imgMap","RA","lat0","lon0","h0");
 
 %% car position visualization
 hShow = 300/m2px;
