@@ -14,11 +14,11 @@ iFrameStart = 156;
 iFrameEnd = 7070;
 intervalFrame = 1;
 
-% [carPos,~,listFrame] = irvtUtils.getCarPos(v,iFrameStart,iFrameEnd);
+[carPos,~,listFrame] = irvtUtils.getCarPos(v,iFrameStart,iFrameEnd);
 
 %%
 % save("temp/carpos_sfl.mat","carPos","listFrame");
-load("temp/carpos_sfl.mat");
+% load("temp/carpos_sfl.mat");
 
 %%
 lapDistRef = cumsum([0; vecnorm(diff(dataRef.carPos),2,2)]);
@@ -57,7 +57,7 @@ end
 
 %%
 % save("temp/carpos_sfl_comp.mat","carPos","carYaw","listIdxNearest")
-load("temp/carpos_sfl_comp.mat")
+% load("temp/carpos_sfl_comp.mat")
 
 %%
 figure("WindowStyle","docked")
@@ -120,10 +120,6 @@ plot(carPosLog(:,1),carPosLog(:,2),"DisplayName","log")
 quiver(dataRef.carPos(:,1),dataRef.carPos(:,2),vectorYawRef(:,1),vectorYawRef(:,2),"off","DisplayName","v(reference)")
 quiver(carPos(:,1),carPos(:,2),vectorYaw(:,1),vectorYaw(:,2),"off","DisplayName","v(calculated)")
 quiver(carPosLog(:,1),carPosLog(:,2),vectorYawLog(:,1),vectorYawLog(:,2),"off","DisplayName","v(log)")
-% scatter(dataRef.carPos(:,1),dataRef.carPos(:,2),30,dataRef.listFrame,"filled")
-% scatter(carPos(:,1),carPos(:,2),30,listIdxNearest,"filled")
-% clim([min(listIdxNearest(listIdxNearest>0)) max(listIdxNearest(listIdxNearest>0))])
-% colorbar
 legend
 
 %%
@@ -132,18 +128,17 @@ thDiffOvershoot = 2*pi*0.9;
 diffCalcLog = carYaw-yawValidLogResampled.';
 diffCalcLog = diffCalcLog(abs(diffCalcLog)<thDiffOvershoot);
 
-
-figure("WindowStyle","docked")
-area(rad2deg(diffCalcLog))
-
 figure("WindowStyle","docked")
 plot(rad2deg(carYaw),"DisplayName","calculated")
 hold on
 plot(rad2deg(yawValidLogResampled),"DisplayName","log")
 legend
+title("Comparison of yaw North (deg)");
+xlabel("Frame")
+ylabel("Yaw North (deg)")
 
 %%
-disp(mean(abs(rad2deg(diffCalcLog))))
+disp("Mean absolute error (deg): " + mean(abs(rad2deg(diffCalcLog))))
 
 %% convert to GPS coordinates
 [gpsLat,gpsLon,~] = matmap3d.enu2geodetic(carPos(:,1),carPos(:,2),zeros(length(carPos),1), ...
@@ -155,99 +150,38 @@ hold on
 geoplot(gpsLat,gpsLon,"DisplayName","calculated")
 legend
 
-%% convert dgrees to DMS
-function [dms] = deg2dms(deg)
-dms = zeros(length(deg),3);
-dms(:,1) = floor(deg);
-dms(:,2) = floor((deg-dms(:,1))*60);
-dms(:,3) = (deg-dms(:,1)-dms(:,2)/60)*3600;
-end
+%% convert degrees to DMS
+gpsLatDms = irvtUtils.deg2dms(gpsLat);
+gpsLonDms = irvtUtils.deg2dms(gpsLon);
 
-function cdiff = centerdiff(data,dt)
-cdiff_ = (data(3:end)-data(1:end-2))/2/dt;
-cdiff = [cdiff_(1); cdiff_; cdiff_(end)];
-end
-
-%% export to table
-gpsLatDms = deg2dms(gpsLat);
-gpsLonDms = deg2dms(gpsLon);
-
-posNorm = vecnorm(diff(carPos),2,2);
-lapDist = cumsum([0; posNorm]);
-
-%%
+%% calculate speed
 dTime = 1/v.FrameRate;
-
-% Smooth input data
 time = transpose(0:dTime:(length(carPos)-1)/v.FrameRate);
-[lapDistSmoothed,winSize] = smoothdata(lapDist,"rloess",1,"SamplePoints",time);
-splDist = py.scipy.interpolate.UnivariateSpline(time,lapDist,s=1e2);
-splSpeed = splDist.derivative(int16(1));
-
-g = 9.81;
-gLon = 4*del2(lapDist,dTime)./g;
-
+posNorm = vecnorm(diff(carPos),2,2);
 speed = [posNorm; posNorm(end)]./dTime;
-speedSpl = double(splSpeed(time));
-speedGradDist = gradient(lapDistSmoothed,dTime);
-
-[speedSmoothed,winSize2] = smoothdata(speed,"gaussian",1,"SamplePoints",time);
 
 % Fill outliers before smoothing
-speedDeletedOutliers = filloutliers(speed,"center","movmedian",1,"ThresholdFactor",5,"SamplePoints",time);
-speedCleaned = smoothdata(speedDeletedOutliers,"gaussian",1,"SamplePoints",time);
+speedInliers = filloutliers(speed,"center","movmedian",1,"ThresholdFactor",5,"SamplePoints",time);
+% Smooth input data
+speedSmoothed = smoothdata(speedInliers,"gaussian",1,"SamplePoints",time);
 
-% Use scipy univariate spline directly
-splSpeedDirect = py.scipy.interpolate.UnivariateSpline(time,speedDeletedOutliers,s=6.5*1e5);
-speedSplDirect = double(splSpeedDirect(time));
-
-% figure("WindowStyle","docked")
-% plot(time,gLon)
-% hold on
-% plot(time(1:end-2),diff(lapDist,2)./dTime^2./g)
-
-%%
-speedNoSmooth = gradient(lapDist,dTime);
-
-% Display results
+%% display results
 figure("WindowStyle","docked")
-% tiledlayout(1,2)
-% ax1 = nexttile;
-% plot(time,lapDist,"DisplayName","Input data")
-% hold on
-% plot(time,lapDistSmoothed,"DisplayName","Smoothed data")
-% % plot(time,splDist(time),"DisplayName","Smoothed spline")
-% grid on
-% title("Moving window size: " + string(winSize));
-% legend
-
-% ax2 = nexttile;
-plot(time,speedNoSmooth*3.6, ...
-    "SeriesIndex",6,"DisplayName","Without smoothing")
+plot(time,speed*3.6,"LineWidth",1.5,"DisplayName","Raw data")
 hold on
-plot(time,speedSmoothed*3.6,"SeriesIndex",1,"LineWidth",1.5, ...
-    "DisplayName","Smoothed data (directly)")
-plot(time,speedSpl*3.6,"SeriesIndex",3,"LineWidth",1.5, ...
-    "DisplayName","Smoothed spline")
-plot(time,speedGradDist*3.6,"SeriesIndex",4,"LineWidth",1.5, ...
-    "DisplayName","Smoothed grad")
-plot(time,speedCleaned*3.6,"SeriesIndex",5,"LineWidth",1.5, ...
-    "DisplayName","Fill outliers")
-plot(time,speedSplDirect*3.6,"SeriesIndex",7,"LineWidth",1.5, ...
-    "DisplayName","Smoothed spline (directly)")
-plot(timeValid,groundSpeedValid,"SeriesIndex",2,"LineWidth",1.5, ...
-    "DisplayName","Logged data")
+plot(time,speedSmoothed*3.6,"LineWidth",1.5,"DisplayName","Smoothed data")
+plot(timeValid,groundSpeedValid,"LineWidth",1.5,"DisplayName","Logged data")
 grid on
-hold off
-title("Moving window size: " + string(winSize2));
+title("Comparison of ground speed (km/h)");
 legend
 xlabel("Time (s)")
-linkaxes([ax1 ax2],"x")
+ylabel("Ground Speed (km/h)")
 
-%%
+%% export to table
 tableExport = table;
 tableExport.("Time (s)") = time;
-tableExport.("Ground Speed (km/h)") = speed*3.6;
+tableExport.("Lap Distance (m)") = cumtrapz(time,speedSmoothed);
+tableExport.("Ground Speed (km/h)") = speedSmoothed*3.6;
 tableExport.("Latitude Degrees ()") = gpsLatDms(:,1);
 tableExport.("Latitude Minutes ()") = gpsLatDms(:,2);
 tableExport.("Latitude Minute fraction ()") = gpsLatDms(:,3);
@@ -257,4 +191,4 @@ tableExport.("Longitude Minute - fraction ()") = gpsLonDms(:,3);
 tableExport.("YawNorth (rad)") = carYaw.*(-1)+pi/2;
 tableExport.("AP Info:") = zeros(length(carPos),1);
 
-% writetable(tableExport,"temp/suzuka_sfl.csv")
+writetable(tableExport,"temp/suzuka_sfl.csv")
