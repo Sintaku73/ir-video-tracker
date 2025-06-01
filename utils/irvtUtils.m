@@ -199,8 +199,8 @@ classdef irvtUtils
             hTrimMeter = hTrimMap/m2px;
             wTrimMeter = wTrimMap/m2px;
 
-            xWorldLimits = [posMin(1)-hTrimMeter/2 posMax(1)+hTrimMeter/2];
-            yWorldLimits = [posMin(2)-wTrimMeter/2 posMax(2)+wTrimMeter/2];
+            xWorldLimits = [posMin(1)-wTrimMeter/2 posMax(1)+wTrimMeter/2];
+            yWorldLimits = [posMin(2)-hTrimMeter/2 posMax(2)+hTrimMeter/2];
             RA = imref2d(size(imgMap),xWorldLimits,yWorldLimits);
         end
 
