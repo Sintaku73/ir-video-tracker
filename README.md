@@ -1,6 +1,6 @@
 # iR Video Tracker
 
-このツールを使うことでiRacingのリプレイ映像から走行データ(走行ライン、速度、ヨー角など)を取得できます。  
+特徴点マッチング[^fm]を用いた画像解析によって、iRacingのリプレイ映像から走行データ(走行ライン、速度、ヨー角など)を取得できます。  
 次のような活用法が期待されます。
 
 - telemetryを取り忘れたラップの分析をしたい。
@@ -10,11 +10,11 @@
 
 ### Prerequisites
 
-- MATLAB
-  - Computer Vision Toolbox
-  - Image Processing Toolbox
-  - MatlabProgressBar
-  - matmap3d
+- [MATLAB](https://www.mathworks.com/products/matlab.html)
+  - [Computer Vision Toolbox](https://www.mathworks.com/products/computer-vision.html)
+  - [Image Processing Toolbox](https://www.mathworks.com/products/image-processing.html)
+  - [MatlabProgressBar](https://www.mathworks.com/matlabcentral/fileexchange/57895-matlabprogressbar)
+  - [matmap3d](https://www.mathworks.com/matlabcentral/fileexchange/68480-matmap3d)
 
 ### Installing
 
@@ -23,6 +23,8 @@ git clone https://github.com/Sintaku73/ir-video-tracker.git
 ```
 
 ## Usage and Examples
+
+このツールの使い方は下記フローチャートの通りです:
 
 ```mermaid
 flowchart TD
@@ -60,7 +62,7 @@ subgraph "Reference lapの準備"
 
     ibt-->ibt2mat
 
-    subgraph "Mu, i2"
+    subgraph "Mu, i2 Pro"
         ibt2mat-->mat
     end
 
@@ -102,30 +104,25 @@ subgraph "iR Video Tracker"
 end
 ```
 
-## Deployment
+### make_reference_lap.m
 
+リプレイ映像、telemetryデータ[^mu]からトラックマップを生成します。
+生成されたデータは`extract_driving.m`でも使用されます。
 
+### extract_driving_data.m
 
-## Built With
-
-
-
-## Contributing
-
-
-
-## Versioning
-
-
-
-## Authors
-
-
+対象ラップのリプレイを`extract_driving_data.m`の出力データと比較することで、対象ラップのtelemetyデータなしに走行データの抽出します。  
+出力されるCSVファイルはSteven Daniluk氏の[MotecLogGenerator](https://github.com/stevendaniluk/MotecLogGenerator.git)[^motec]を用いることでi2 Proで読み込める形式に変換できます。
 
 ## License
 
 
 
-## Acknowledgments
+## References
 
-
+[^fm]: [Automatically Find Image Rotation and Scale](https://www.mathworks.com/help/vision/ug/find-image-rotation-and-scale-using-automated-feature-matching.html)  
+    特徴点マッチングについてはこちらのサンプルを参考にしました。
+[^mu]: [Mu - Telemetry Exporter for iRacing](https://github.com/patrickmoore/Mu)  
+    iRacingで得られたibtファイルの変換に使用しました。
+[^motec]: [MotecLogGenerator](https://github.com/stevendaniluk/MotecLogGenerator)  
+    [Accessport形式](https://github.com/stevendaniluk/MotecLogGenerator#accessport-logs)での変換に対応しています。
