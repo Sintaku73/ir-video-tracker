@@ -199,6 +199,8 @@ tableExport.("Longitude Degrees ()") = gpsLonDms(:,1);
 tableExport.("Longitude Minutes ()") = gpsLonDms(:,2);
 tableExport.("Longitude Minute - fraction ()") = gpsLonDms(:,3);
 tableExport.("YawNorth (rad)") = carYaw.*(-1)+pi/2;
+tableExport.("X (m)") = carPos(:,1);
+tableExport.("Y (m)") = carPos(:,2);
 tableExport.("AP Info:") = zeros(length(carPos),1);
 
 writetable(tableExport,"temp/suzuka_sfl.csv")
