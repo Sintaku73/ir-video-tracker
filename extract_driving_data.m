@@ -64,10 +64,6 @@ figure("WindowStyle","docked")
 imshow(dataRef.imgMap,dataRef.RA,"InitialMagnification","fit")
 axis ij
 hold on
-h(1) = plot(dataRef.carPos(:,1),-dataRef.carPos(:,2),".-","MarkerSize",10,"LineWidth",1.5);
-% scatter(dataRef.carPos(:,1),-dataRef.carPos(:,2),10,dataRef.listFrame,"filled")
-h(2) = plot(carPos(:,1),-carPos(:,2),".-","MarkerSize",10,"LineWidth",1.5);
-% scatter(carPos(:,1),-carPos(:,2),10,listFrame,"filled")
 for i = progress(1:length(carPos))
     tempFrom = [carPos(i,1) dataRef.carPos(listIdxNearest(i),1)];
     tempTo = [-carPos(i,2) -dataRef.carPos(listIdxNearest(i),2)];
@@ -77,6 +73,10 @@ for i = progress(1:length(carPos))
         plot(tempFrom,tempTo,"SeriesIndex",3)
     end
 end
+h(1) = plot(dataRef.carPos(:,1),-dataRef.carPos(:,2),".-","MarkerSize",10,"LineWidth",0.75);
+% scatter(dataRef.carPos(:,1),-dataRef.carPos(:,2),10,dataRef.listFrame,"filled")
+h(2) = plot(carPos(:,1),-carPos(:,2),".-","MarkerSize",10,"LineWidth",0.75);
+% scatter(carPos(:,1),-carPos(:,2),10,listFrame,"filled")
 ax = gca;
 ax.TickDir = "in";
 title("Reference lap vs. Extracted lap")
