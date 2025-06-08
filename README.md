@@ -6,6 +6,8 @@
 - telemetryを取り忘れたラップの分析をしたい。
 - 手元にtelemetryデータのないライバルの走りを分析したい。
 
+![Demo video](assets/images/demo.gif)
+
 ## Getting Started
 
 ### Prerequisites
@@ -113,6 +115,8 @@ end
 
 対象ラップのリプレイを`extract_driving_data.m`の出力データと比較することで、対象ラップのtelemetyデータなしに走行データの抽出します。  
 出力されるCSVファイルはSteven Daniluk氏の[MotecLogGenerator](https://github.com/stevendaniluk/MotecLogGenerator.git)[^motec]を用いることでi2 Proで読み込める形式に変換できます。
+
+![Visualisation of reference and extraction lap pairs](assets/images/compare_ref_tgt.jpg)
 
 ## License
 

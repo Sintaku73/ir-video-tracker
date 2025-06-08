@@ -4,3 +4,5 @@
 *.asv
 /input/*
 /temp
+
+!demo.mp4

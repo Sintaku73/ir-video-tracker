@@ -79,7 +79,7 @@ h(2) = plot(carPos(:,1),-carPos(:,2),".-","MarkerSize",10,"LineWidth",0.75);
 % scatter(carPos(:,1),-carPos(:,2),10,listFrame,"filled")
 ax = gca;
 ax.TickDir = "in";
-title("Reference lap vs. Extracted lap")
+title("Reference Lap vs. Extracted Lap")
 xlabel("x (m)")
 ylabel("y (m)")
 % colorbar
