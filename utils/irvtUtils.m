@@ -179,6 +179,7 @@ classdef irvtUtils
             sizeMap = max(posFlip,[],1)-min(posFlip,[],1)+[hTrimMap wTrimMap]+1;
             shiftMap = min(posFlip,[],1)*(-1)+1;
 
+            % Create the track map
             imgMap = zeros(sizeMap(1),sizeMap(2),3,"uint8");
             for i = progress(1:nData,"UpdateRate",2)
                 iFrame = listFrame(i);
@@ -188,9 +189,14 @@ classdef irvtUtils
                 idxStart = posFlip(i,:)+shiftMap;
                 idxEnd = idxStart+[hTrimMap wTrimMap]-1;
                 imgTemp = imgMap(idxStart(1):idxEnd(1), idxStart(2):idxEnd(2),:);
-                boolHollow = (frameCurrent==0);
+                boolHollow = all(frameCurrent==0,3);
                 imgMap(idxStart(1):idxEnd(1), idxStart(2):idxEnd(2),:) = imgTemp.*uint8(boolHollow)+frameCurrent;
             end
+
+            % Convert the background from black to white
+            boolBg = all(imgMap==0,3);
+            boolBg = cat(3,boolBg,boolBg,boolBg);
+            imgMap(boolBg) = 255;
 
             % Calculate the map limits
             posMin = min(carPosInv,[],1);
@@ -199,8 +205,8 @@ classdef irvtUtils
             hTrimMeter = hTrimMap/m2px;
             wTrimMeter = wTrimMap/m2px;
 
-            xWorldLimits = [posMin(1)-hTrimMeter/2 posMax(1)+hTrimMeter/2];
-            yWorldLimits = [posMin(2)-wTrimMeter/2 posMax(2)+wTrimMeter/2];
+            xWorldLimits = [posMin(1)-wTrimMeter/2 posMax(1)+wTrimMeter/2];
+            yWorldLimits = [posMin(2)-hTrimMeter/2 posMax(2)+hTrimMeter/2];
             RA = imref2d(size(imgMap),xWorldLimits,yWorldLimits);
         end
 
