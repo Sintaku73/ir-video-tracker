@@ -5,8 +5,8 @@ close all
 addpath(fullfile(pwd,"utils"));
 
 %%
-vRef = VideoReader("input/iRacing.com Simulator 2025-04-21 00-14-39.mp4");
-v = VideoReader("input/iRacing.com Simulator 2025-04-21 00-25-11.mp4");
+vRef = VideoReader("input/sample_video_ref.mp4");
+v = VideoReader("input/sample_video_tgt.mp4");
 iFrame1 = 895;
 iFrame2 = 979;
 frame1 = read(vRef,iFrame1);

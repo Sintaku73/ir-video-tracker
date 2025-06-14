@@ -5,9 +5,9 @@ clear
 %%
 addpath(fullfile(pwd,"utils"));
 
-load("input\line_60Hz.mat");
+load("input/line_60Hz.mat");
 carPos = carPos.*[1 -1];
-v = VideoReader("input/iRacing.com Simulator 2025-04-21 00-14-39.mp4");
+v = VideoReader("input/sample_video_ref.mp4");
 
 %%
 hTrim = 300;
@@ -36,7 +36,7 @@ for i = progress(1:length(listFrame),"UpdateRate",2)
 end
 
 %%
-% imwrite(imgMap,"temp\trackmap_suzuka.png")
+% imwrite(imgMap,"temp/trackmap_suzuka.png")
 
 f = figure;
 imshow(imgMap)

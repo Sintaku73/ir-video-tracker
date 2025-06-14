@@ -4,7 +4,7 @@ close all
 %%
 addpath(fullfile(pwd,"utils"));
 
-v = VideoReader("input/iRacing.com Simulator 2025-04-21 00-14-39.mp4");
+v = VideoReader("input/sample_video_ref.mp4");
 
 hTrim = 720;
 wTrim = 1790;

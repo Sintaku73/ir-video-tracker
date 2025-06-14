@@ -2,9 +2,9 @@
 addpath(fullfile(pwd,"utils"));
 
 %%
-dataRef = load("input/reference_lap.mat");
+dataRef = load("output/reference_lap.mat");
 
-v = VideoReader("input/iRacing.com Simulator 2025-04-21 00-25-11.mp4");
+v = VideoReader("input/sample_video_tgt.mp4");
 iFrameStart = 156;
 iFrameEnd = 7070;
 intervalFrame = 1;
@@ -12,7 +12,7 @@ intervalFrame = 1;
 listFrame = iFrameStart:intervalFrame:iFrameEnd;
 
 %%
-tableResult = readtable("temp/suzuka_sfl.csv","VariableNamingRule","preserve");
+tableResult = readtable("output/sample_result.csv","VariableNamingRule","preserve");
 
 %%
 hShowPx = 272;

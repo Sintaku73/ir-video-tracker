@@ -5,11 +5,11 @@ clear
 %%
 addpath(fullfile(pwd,"utils"));
 
-dataRef = load("input/reference_lap.mat");
+dataRef = load("output/reference_lap.mat");
 vRef = VideoReader(dataRef.pathVideo);
 
 %%
-v = VideoReader("input/iRacing.com Simulator 2025-04-21 00-25-11.mp4");
+v = VideoReader("input/sample_video_tgt.mp4");
 iFrameStart = 156;
 iFrameEnd = 7070;
 intervalFrame = 1;
@@ -86,7 +86,7 @@ ylabel("y (m)")
 legend(h,{"reference","extracted from replay","pair"})
 
 %% evaluate the result with comparison to GPS data
-load("input/superformulalights324_suzuka grandprix 2025-04-20 18-37-17_Stint_1.mat", ...
+load("input/sample_telemetry_tgt_for_eval.mat", ...
     "Lap","Latitude_Degrees","Latitude_Minutes","Latitude_Minute_fraction", ...
     "Longitude_Degrees","Longitude_Minutes","Longitude_Minute___fraction","GPS_Altitude","YawNorth","Ground_Speed");
 
@@ -203,4 +203,4 @@ tableExport.("X (m)") = carPos(:,1);
 tableExport.("Y (m)") = carPos(:,2);
 tableExport.("AP Info:") = zeros(length(carPos),1);
 
-writetable(tableExport,"temp/suzuka_sfl.csv")
+writetable(tableExport,"output/sample_result.csv")
