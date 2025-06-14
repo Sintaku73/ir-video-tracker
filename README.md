@@ -6,7 +6,7 @@
 - telemetryを取り忘れたラップの分析をしたい。
 - 手元にtelemetryデータのないライバルの走りを分析したい。
 
-![Demo video](assets/images/demo.gif)
+https://github.com/user-attachments/assets/ce83eb81-7a86-46ea-b098-edb9202035b1
 
 ## Getting Started
 
