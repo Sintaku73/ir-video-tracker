@@ -3,8 +3,6 @@ close all
 clear
 
 %%
-addpath(fullfile(pwd,"utils"));
-
 dataRef = load("output/sample_ref_lap.mat");
 vRef = VideoReader(dataRef.pathVideo);
 

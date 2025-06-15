@@ -2,9 +2,6 @@ clear
 close all
 
 %%
-addpath(fullfile(pwd,"utils"));
-
-%%
 vRef = VideoReader("input/sample_video_ref.mp4");
 v = VideoReader("input/sample_video_tgt.mp4");
 iFrame1 = 895;

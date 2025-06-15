@@ -3,8 +3,6 @@ close all
 clear
 
 %%
-addpath(fullfile(pwd,"utils"));
-
 load("input/line_60Hz.mat");
 carPos = carPos.*[1 -1];
 v = VideoReader("input/sample_video_ref.mp4");

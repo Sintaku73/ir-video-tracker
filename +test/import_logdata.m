@@ -1,8 +1,6 @@
+%%
 clear
 close all
-
-%%
-addpath(fullfile(pwd,"utils"));
 
 %%
 load("input/sample_telemetry_ref.mat", ...

@@ -1,7 +1,4 @@
 %%
-addpath(fullfile(pwd,"utils"));
-
-%%
 dataRef = load("output/sample_ref_lap.mat");
 
 v = VideoReader("input/sample_video_tgt.mp4");

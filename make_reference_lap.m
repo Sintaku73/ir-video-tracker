@@ -3,8 +3,6 @@ close all
 clear
 
 %%
-addpath(fullfile(pwd,"utils"));
-
 pathVideo = "input/sample_video_ref.mp4";
 v = VideoReader(pathVideo);
 

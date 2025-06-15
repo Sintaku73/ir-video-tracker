@@ -1,9 +1,8 @@
+%%
 clear
 close all
 
 %%
-addpath(fullfile(pwd,"utils"));
-
 v = VideoReader("input/sample_video_ref.mp4");
 
 hTrim = 720;
