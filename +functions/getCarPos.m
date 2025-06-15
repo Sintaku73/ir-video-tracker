@@ -11,17 +11,17 @@ end
 listFrame = iFrameStart:intervalFrame:iFrameEnd;
 nFrame = length(listFrame);
 frameCurrent = read(v,iFrameStart);
-trimmedCurrent = irvtUtils.trimImg(frameCurrent,hTrim,wTrim);
+trimmedCurrent = functions.trimImg(frameCurrent,hTrim,wTrim);
 grayCurrent = rgb2gray(trimmedCurrent);
 diffTranslation = zeros(nFrame,2);
 diffAngle = zeros(nFrame,1);
 
 for i=progress(2:nFrame,"UpdateRate",2)
     frameNext = read(v,listFrame(i));
-    trimmedNext = irvtUtils.trimImg(frameNext,hTrim,wTrim);
+    trimmedNext = functions.trimImg(frameNext,hTrim,wTrim);
     grayNext = rgb2gray(trimmedNext);
 
-    tform = irvtUtils.getImgMove(grayCurrent,grayNext);
+    tform = functions.getImgMove(grayCurrent,grayNext);
     diffTranslation(i,:) = tform.Translation;
     diffAngle(i) = tform.RotationAngle;
 
@@ -32,8 +32,8 @@ carCoG = [wTrim/2+0.5 hTrim/2+0.5];
 carYaw = cumsum(diffAngle);
 diffRotated=zeros(size(diffTranslation));
 for i=2:nFrame
-    diffRotated(i,:)=transpose(irvtUtils.rot(carYaw(i-1))*diffTranslation(i,:).' ...
-        -irvtUtils.rot(carYaw(i-1))*carCoG.'+irvtUtils.rot(carYaw(i))*carCoG.');
+    diffRotated(i,:)=transpose(functions.rot(carYaw(i-1))*diffTranslation(i,:).' ...
+        -functions.rot(carYaw(i-1))*carCoG.'+functions.rot(carYaw(i))*carCoG.');
 end
 carPos = cumsum(diffRotated);
 
@@ -41,13 +41,13 @@ carPos = cumsum(diffRotated);
 frameStart = read(v,listFrame(1));
 frameEnd = read(v,listFrame(end));
 
-trimmedStart = irvtUtils.trimImg(frameStart,hTrim,wTrim);
-trimmedEnd = irvtUtils.trimImg(frameEnd,hTrim,wTrim);
+trimmedStart = functions.trimImg(frameStart,hTrim,wTrim);
+trimmedEnd = functions.trimImg(frameEnd,hTrim,wTrim);
 grayStart = rgb2gray(trimmedStart);
 grayEnd = rgb2gray(trimmedEnd);
 
-tform = irvtUtils.getImgMove(grayStart,grayEnd);
-diffS2E = irvtUtils.getCarMove(tform,carCoG);
+tform = functions.getImgMove(grayStart,grayEnd);
+diffS2E = functions.getCarMove(tform,carCoG);
 
 shiftPos = carPos(1,:)-carPos(end,:)+diffS2E;
 carPos = (carPos+linspace(0,1,nFrame).'.*shiftPos).*[1 -1];

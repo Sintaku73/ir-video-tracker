@@ -19,7 +19,7 @@ hTrimMove = 720;
 wTrimMove = 1790;
 
 %%
-[carPos,yawValid,listFrame,m2px,imgMap,RA,lat0,lon0,h0] = irvtUtils.getTrackMapLog( ...
+[carPos,yawValid,listFrame,m2px,imgMap,RA,lat0,lon0,h0] = functions.getTrackMapLog( ...
     v,iFrameStart,pathLog,lapSelected,hTrimMap,wTrimMap,hCar,wCar,hTrimMove,wTrimMove);
 carPosInv = carPos.*[1 -1];
 
@@ -31,7 +31,7 @@ hold on
 plot(carPosInv(:,1),carPosInv(:,2))
 
 %%
-save("output/reference_lap.mat","pathVideo","listFrame","carPos","yawValid","m2px","imgMap","RA","lat0","lon0","h0");
+save("output/sample_ref_lap.mat","pathVideo","listFrame","carPos","yawValid","m2px","imgMap","RA","lat0","lon0","h0");
 
 %% car position visualization
 hShow = 300/m2px;

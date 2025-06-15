@@ -4,5 +4,5 @@ arguments
     carCoG (1,2) double
 end
 % Get the translation of the car in the image
-translation = tform.Translation-carCoG+transpose(irvtUtils.rot(tform.RotationAngle)*carCoG.');
+translation = tform.Translation-carCoG+transpose(functions.rot(tform.RotationAngle)*carCoG.');
 end

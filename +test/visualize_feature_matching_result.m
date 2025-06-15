@@ -22,8 +22,8 @@ hTrim = 720;
 wTrim = 960;
 
 %%
-trimmed1 = irvtUtils.trimImg(frame1,hTrim,wTrim);
-trimmed2 = irvtUtils.trimImg(frame2,hTrim,wTrim);
+trimmed1 = functions.trimImg(frame1,hTrim,wTrim);
+trimmed2 = functions.trimImg(frame2,hTrim,wTrim);
 
 figure("WindowStyle","docked")
 imshowpair(trimmed1,trimmed2,"montage")
@@ -66,7 +66,7 @@ axis on
 % Due to its reliance on random sampling, the MSAC algorithm may produce
 % varying results in the transformation computation.
 [tform,inlierIdx] = estgeotform2d(matched2,matched1,"rigid");
-tformUtils = irvtUtils.getImgMove(gray1,gray2);
+tformUtils = functions.getImgMove(gray1,gray2);
 inlierDistorted = matched2(inlierIdx,:);
 inlierOriginal = matched1(inlierIdx,:);
 

@@ -2,7 +2,7 @@
 addpath(fullfile(pwd,"utils"));
 
 %%
-dataRef = load("output/reference_lap.mat");
+dataRef = load("output/sample_ref_lap.mat");
 
 v = VideoReader("input/sample_video_tgt.mp4");
 iFrameStart = 156;
@@ -37,7 +37,7 @@ f = figure("Visible","off","Position",[100 100 1280 720]);
 
 ax1 = subplot(2,2,1);
 frame = read(v,listFrame(1));
-frameTrimmed = irvtUtils.trimImg(frame,hShowPx,wShowPx);
+frameTrimmed = functions.trimImg(frame,hShowPx,wShowPx);
 im1 = imshow(frameTrimmed);
 title("Input Replay (Trimmed)")
 
@@ -77,7 +77,7 @@ frameWrite = getframe(gcf);
 writeVideo(vOut,frameWrite);
 for i = progress(2:length(listFrame),"UpdateRate",2)
     frame = read(v,listFrame(i));
-    frameTrimmed = irvtUtils.trimImg(frame,hShowPx,wShowPx);
+    frameTrimmed = functions.trimImg(frame,hShowPx,wShowPx);
     im1.CData = frameTrimmed;
 
     xCurrent = tableResult.("X (m)")(i);

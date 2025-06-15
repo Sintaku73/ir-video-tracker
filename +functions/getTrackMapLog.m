@@ -39,16 +39,16 @@ listFrame = iFrameStart:iFrameStart+nData-1;
 carCoG = [wTrimMove/2+0.5 hTrimMove/2+0.5];
 diffGps = vecnorm(diff(carPosInv,[],1),2,2);
 
-frameStart = irvtUtils.trimImg(read(v,listFrame(1)),hTrimMove,wTrimMove);
-frameStartNext =  irvtUtils.trimImg(read(v,listFrame(2)),hTrimMove,wTrimMove);
-frameEnd = irvtUtils.trimImg(read(v,listFrame(end)),hTrimMove,wTrimMove);
-frameEndPrev = irvtUtils.trimImg(read(v,listFrame(end-1)),hTrimMove,wTrimMove);
+frameStart = functions.trimImg(read(v,listFrame(1)),hTrimMove,wTrimMove);
+frameStartNext =  functions.trimImg(read(v,listFrame(2)),hTrimMove,wTrimMove);
+frameEnd = functions.trimImg(read(v,listFrame(end)),hTrimMove,wTrimMove);
+frameEndPrev = functions.trimImg(read(v,listFrame(end-1)),hTrimMove,wTrimMove);
 
-tformStart = irvtUtils.getImgMove(rgb2gray(frameStart),rgb2gray(frameStartNext));
-tfotmEnd = irvtUtils.getImgMove(rgb2gray(frameEndPrev),rgb2gray(frameEnd));
+tformStart = functions.getImgMove(rgb2gray(frameStart),rgb2gray(frameStartNext));
+tfotmEnd = functions.getImgMove(rgb2gray(frameEndPrev),rgb2gray(frameEnd));
 
-diffFrameStart = norm(irvtUtils.getCarMove(tformStart,carCoG));
-diffFrameEnd = norm(irvtUtils.getCarMove(tfotmEnd,carCoG));
+diffFrameStart = norm(functions.getCarMove(tformStart,carCoG));
+diffFrameEnd = norm(functions.getCarMove(tfotmEnd,carCoG));
 
 m2px = mean([diffFrameStart/diffGps(1) diffFrameEnd/diffGps(end)]);
 
@@ -61,8 +61,8 @@ shiftMap = min(posFlip,[],1)*(-1)+1;
 imgMap = zeros(sizeMap(1),sizeMap(2),3,"uint8");
 for i = progress(1:nData,"UpdateRate",2)
     iFrame = listFrame(i);
-    frameCurrent = irvtUtils.trimImg(read(v,iFrame),hTrimMap,wTrimMap);
-    frameCurrent = irvtUtils.deleteAroundCar(frameCurrent,hCar,wCar);
+    frameCurrent = functions.trimImg(read(v,iFrame),hTrimMap,wTrimMap);
+    frameCurrent = functions.deleteAroundCar(frameCurrent,hCar,wCar);
     frameCurrent = imrotate(frameCurrent,rad2deg(yawValid(i))-90,"crop");
     idxStart = posFlip(i,:)+shiftMap;
     idxEnd = idxStart+[hTrimMap wTrimMap]-1;

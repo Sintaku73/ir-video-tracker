@@ -5,7 +5,7 @@ clear
 %%
 addpath(fullfile(pwd,"utils"));
 
-dataRef = load("output/reference_lap.mat");
+dataRef = load("output/sample_ref_lap.mat");
 vRef = VideoReader(dataRef.pathVideo);
 
 %%
@@ -14,7 +14,7 @@ iFrameStart = 156;
 iFrameEnd = 7070;
 intervalFrame = 1;
 
-[carPos,~,listFrame] = irvtUtils.getCarPos(v,iFrameStart,iFrameEnd);
+[carPos,~,listFrame] = functions.getCarPos(v,iFrameStart,iFrameEnd);
 
 %%
 % save("temp/carpos_sfl.mat","carPos","listFrame");
@@ -43,15 +43,15 @@ for i = progress(1:length(listFrame),"UpdateRate",2)
 
     frameRef = read(vRef,iFrameRef);
     frameCurrent = read(v,iFrameCurrent);
-    trimmedRef = irvtUtils.trimImg(frameRef,hTrim,wTrim);
-    trimmedCurrent = irvtUtils.trimImg(frameCurrent,hTrim,wTrim);
+    trimmedRef = functions.trimImg(frameRef,hTrim,wTrim);
+    trimmedCurrent = functions.trimImg(frameCurrent,hTrim,wTrim);
     grayRef = rgb2gray(trimmedRef);
     grayCurrent = rgb2gray(trimmedCurrent);
 
-    tform = irvtUtils.getImgMove(grayRef,grayCurrent);
-    diffTranslation = irvtUtils.getCarMove(tform,carCoG)/dataRef.m2px.*[1 -1];
+    tform = functions.getImgMove(grayRef,grayCurrent);
+    diffTranslation = functions.getCarMove(tform,carCoG)/dataRef.m2px.*[1 -1];
     carPos(i,:) = dataRef.carPos(idxRefNearest,:)+...
-        (irvtUtils.rot(yawNorthRef(idxRefNearest))*diffTranslation.').';
+        (functions.rot(yawNorthRef(idxRefNearest))*diffTranslation.').';
     carYaw(i) = dataRef.yawValid(idxRefNearest)+deg2rad(-tform.RotationAngle);
 end
 
@@ -161,8 +161,8 @@ geoplot(gpsLat,gpsLon,"DisplayName","calculated")
 legend
 
 %% convert degrees to DMS
-gpsLatDms = irvtUtils.deg2dms(gpsLat);
-gpsLonDms = irvtUtils.deg2dms(gpsLon);
+gpsLatDms = functions.deg2dms(gpsLat);
+gpsLonDms = functions.deg2dms(gpsLon);
 
 %% calculate speed
 dTime = 1/v.FrameRate;
