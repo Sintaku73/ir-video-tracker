@@ -48,8 +48,8 @@ imshow(imgMap,RA)
 hold on
 plot(carPosInv(:,1),carPosInv(:,2))
 p = plot(carPosInv(1,1),carPosInv(1,2),'o','MarkerFaceColor','red');
-xlabel("x [m]")
-ylabel("y [m]")
+xlabel("x (m)")
+ylabel("y (m)")
 xlim([xCurrent-wShow/2 xCurrent+wShow/2])
 ylim([yCurrent-hShow/2 yCurrent+hShow/2])
 hold off
