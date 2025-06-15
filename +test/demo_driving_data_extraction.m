@@ -1,10 +1,7 @@
 %%
-addpath(fullfile(pwd,"utils"));
+dataRef = load("output/sample_ref_lap.mat");
 
-%%
-dataRef = load("input/reference_lap.mat");
-
-v = VideoReader("input/iRacing.com Simulator 2025-04-21 00-25-11.mp4");
+v = VideoReader("input/sample_video_tgt.mp4");
 iFrameStart = 156;
 iFrameEnd = 7070;
 intervalFrame = 1;
@@ -12,7 +9,7 @@ intervalFrame = 1;
 listFrame = iFrameStart:intervalFrame:iFrameEnd;
 
 %%
-tableResult = readtable("temp/suzuka_sfl.csv","VariableNamingRule","preserve");
+tableResult = readtable("output/sample_result.csv","VariableNamingRule","preserve");
 
 %%
 hShowPx = 272;
@@ -37,7 +34,7 @@ f = figure("Visible","off","Position",[100 100 1280 720]);
 
 ax1 = subplot(2,2,1);
 frame = read(v,listFrame(1));
-frameTrimmed = irvtUtils.trimImg(frame,hShowPx,wShowPx);
+frameTrimmed = functions.trimImg(frame,hShowPx,wShowPx);
 im1 = imshow(frameTrimmed);
 title("Input Replay (Trimmed)")
 
@@ -77,7 +74,7 @@ frameWrite = getframe(gcf);
 writeVideo(vOut,frameWrite);
 for i = progress(2:length(listFrame),"UpdateRate",2)
     frame = read(v,listFrame(i));
-    frameTrimmed = irvtUtils.trimImg(frame,hShowPx,wShowPx);
+    frameTrimmed = functions.trimImg(frame,hShowPx,wShowPx);
     im1.CData = frameTrimmed;
 
     xCurrent = tableResult.("X (m)")(i);

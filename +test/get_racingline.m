@@ -1,10 +1,9 @@
+%%
 clear
 close all
 
 %%
-addpath(fullfile(pwd,"utils"));
-
-v = VideoReader("input/iRacing.com Simulator 2025-04-21 00-14-39.mp4");
+v = VideoReader("input/sample_video_ref.mp4");
 
 hTrim = 720;
 wTrim = 1790;
@@ -13,7 +12,7 @@ iFrameEnd = 6230;
 intervalFrame = 1;
 
 %%
-[carPos,carYaw,listFrame] = irvtUtils.getCarPos(v,iFrameStart,iFrameEnd,hTrim,wTrim,intervalFrame);
+[carPos,carYaw,listFrame] = functions.getCarPos(v,iFrameStart,iFrameEnd,hTrim,wTrim,intervalFrame);
 
 %%
 str = num2cell(listFrame);

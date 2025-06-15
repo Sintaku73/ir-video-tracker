@@ -3,18 +3,16 @@ close all
 clear
 
 %%
-addpath(fullfile(pwd,"utils"));
-
-dataRef = load("input/reference_lap.mat");
+dataRef = load("output/sample_ref_lap.mat");
 vRef = VideoReader(dataRef.pathVideo);
 
 %%
-v = VideoReader("input/iRacing.com Simulator 2025-04-21 00-25-11.mp4");
-iFrameStart = 156;
-iFrameEnd = 7070;
+v = VideoReader("input/sample_video_tgt.mp4");
+iFrameStart = 159;
+iFrameEnd = 7073;
 intervalFrame = 1;
 
-[carPos,~,listFrame] = irvtUtils.getCarPos(v,iFrameStart,iFrameEnd);
+[carPos,~,listFrame] = functions.getCarPos(v,iFrameStart,iFrameEnd);
 
 %%
 % save("temp/carpos_sfl.mat","carPos","listFrame");
@@ -43,15 +41,15 @@ for i = progress(1:length(listFrame),"UpdateRate",2)
 
     frameRef = read(vRef,iFrameRef);
     frameCurrent = read(v,iFrameCurrent);
-    trimmedRef = irvtUtils.trimImg(frameRef,hTrim,wTrim);
-    trimmedCurrent = irvtUtils.trimImg(frameCurrent,hTrim,wTrim);
+    trimmedRef = functions.trimImg(frameRef,hTrim,wTrim);
+    trimmedCurrent = functions.trimImg(frameCurrent,hTrim,wTrim);
     grayRef = rgb2gray(trimmedRef);
     grayCurrent = rgb2gray(trimmedCurrent);
 
-    tform = irvtUtils.getImgMove(grayRef,grayCurrent);
-    diffTranslation = irvtUtils.getCarMove(tform,carCoG)/dataRef.m2px.*[1 -1];
+    tform = functions.getImgMove(grayRef,grayCurrent);
+    diffTranslation = functions.getCarMove(tform,carCoG)/dataRef.m2px.*[1 -1];
     carPos(i,:) = dataRef.carPos(idxRefNearest,:)+...
-        (irvtUtils.rot(yawNorthRef(idxRefNearest))*diffTranslation.').';
+        (functions.rot(yawNorthRef(idxRefNearest))*diffTranslation.').';
     carYaw(i) = dataRef.yawValid(idxRefNearest)+deg2rad(-tform.RotationAngle);
 end
 
@@ -86,7 +84,7 @@ ylabel("y (m)")
 legend(h,{"reference","extracted from replay","pair"})
 
 %% evaluate the result with comparison to GPS data
-load("input/superformulalights324_suzuka grandprix 2025-04-20 18-37-17_Stint_1.mat", ...
+load("input/sample_telemetry_tgt_for_eval.mat", ...
     "Lap","Latitude_Degrees","Latitude_Minutes","Latitude_Minute_fraction", ...
     "Longitude_Degrees","Longitude_Minutes","Longitude_Minute___fraction","GPS_Altitude","YawNorth","Ground_Speed");
 
@@ -96,7 +94,7 @@ gpsLonLog = Longitude_Degrees.Value + Longitude_Minutes.Value./60 + Longitude_Mi
 %%
 figure("WindowStyle","docked")
 geoplot(gpsLatLog,gpsLonLog)
-geobasemap none
+geobasemap satellite
 
 %%
 lapSelected = 2;
@@ -161,8 +159,8 @@ geoplot(gpsLat,gpsLon,"DisplayName","calculated")
 legend
 
 %% convert degrees to DMS
-gpsLatDms = irvtUtils.deg2dms(gpsLat);
-gpsLonDms = irvtUtils.deg2dms(gpsLon);
+gpsLatDms = functions.deg2dms(gpsLat);
+gpsLonDms = functions.deg2dms(gpsLon);
 
 %% calculate speed
 dTime = 1/v.FrameRate;
@@ -203,4 +201,4 @@ tableExport.("X (m)") = carPos(:,1);
 tableExport.("Y (m)") = carPos(:,2);
 tableExport.("AP Info:") = zeros(length(carPos),1);
 
-writetable(tableExport,"temp/suzuka_sfl.csv")
+writetable(tableExport,"output/sample_result.csv")

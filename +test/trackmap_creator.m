@@ -3,11 +3,9 @@ close all
 clear
 
 %%
-addpath(fullfile(pwd,"utils"));
-
-load("input\line_60Hz.mat");
+load("input/line_60Hz.mat");
 carPos = carPos.*[1 -1];
-v = VideoReader("input/iRacing.com Simulator 2025-04-21 00-14-39.mp4");
+v = VideoReader("input/sample_video_ref.mp4");
 
 %%
 hTrim = 300;
@@ -25,8 +23,8 @@ posShifted = carPos+flip(shiftMap,2)+([wTrim hTrim]+1)/2;
 imgMap = zeros(sizeMap(1),sizeMap(2),3,"uint8");
 for i = progress(1:length(listFrame),"UpdateRate",2)
     nFrame = listFrame(i);
-    frameCurrent = irvtUtils.trimImg(read(v,nFrame),hTrim,wTrim);
-    frameCurrent = irvtUtils.deleteAroundCar(frameCurrent,hCar,wCar);
+    frameCurrent = functions.trimImg(read(v,nFrame),hTrim,wTrim);
+    frameCurrent = functions.deleteAroundCar(frameCurrent,hCar,wCar);
     frameCurrent = imrotate(frameCurrent,carYaw(i),"crop");
     idxStart = posFlip(i,:)+shiftMap;
     idxEnd = idxStart+[hTrim wTrim]-1;
@@ -36,7 +34,7 @@ for i = progress(1:length(listFrame),"UpdateRate",2)
 end
 
 %%
-% imwrite(imgMap,"temp\trackmap_suzuka.png")
+% imwrite(imgMap,"temp/trackmap_suzuka.png")
 
 f = figure;
 imshow(imgMap)

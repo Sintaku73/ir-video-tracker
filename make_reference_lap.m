@@ -3,14 +3,12 @@ close all
 clear
 
 %%
-addpath(fullfile(pwd,"utils"));
-
-pathVideo = "input/iRacing.com Simulator 2025-04-21 00-14-39.mp4";
+pathVideo = "input/sample_video_ref.mp4";
 v = VideoReader(pathVideo);
 
-pathLog = "input\superformulasf23 toyota_suzuka grandprix 2025-04-20 18-23-54_Stint_3.mat";
+pathLog = "input/sample_telemetry_ref.mat";
 lapSelected = 3;
-iFrameStart = 185;
+iFrameStart = 188;
 hTrimMap = 300;
 wTrimMap = hTrimMap;
 hCar = 60;
@@ -19,7 +17,7 @@ hTrimMove = 720;
 wTrimMove = 1790;
 
 %%
-[carPos,yawValid,listFrame,m2px,imgMap,RA,lat0,lon0,h0] = irvtUtils.getTrackMapLog( ...
+[carPos,yawValid,listFrame,m2px,imgMap,RA,lat0,lon0,h0] = functions.getTrackMapLog( ...
     v,iFrameStart,pathLog,lapSelected,hTrimMap,wTrimMap,hCar,wCar,hTrimMove,wTrimMove);
 carPosInv = carPos.*[1 -1];
 
@@ -29,10 +27,9 @@ imshow(imgMap,RA)
 title("m")
 hold on
 plot(carPosInv(:,1),carPosInv(:,2))
-% print("temp/m","-dtiffn","-r600")
 
 %%
-save("input\reference_lap.mat","pathVideo","listFrame","carPos","yawValid","m2px","imgMap","RA","lat0","lon0","h0");
+save("output/sample_ref_lap.mat","pathVideo","listFrame","carPos","yawValid","m2px","imgMap","RA","lat0","lon0","h0");
 
 %% car position visualization
 hShow = 300/m2px;
@@ -51,8 +48,8 @@ imshow(imgMap,RA)
 hold on
 plot(carPosInv(:,1),carPosInv(:,2))
 p = plot(carPosInv(1,1),carPosInv(1,2),'o','MarkerFaceColor','red');
-xlabel("x [m]")
-ylabel("y [m]")
+xlabel("x (m)")
+ylabel("y (m)")
 xlim([xCurrent-wShow/2 xCurrent+wShow/2])
 ylim([yCurrent-hShow/2 yCurrent+hShow/2])
 hold off
