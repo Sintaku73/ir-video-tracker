@@ -8,8 +8,8 @@ vRef = VideoReader(dataRef.pathVideo);
 
 %%
 v = VideoReader("input/sample_video_tgt.mp4");
-iFrameStart = 156;
-iFrameEnd = 7070;
+iFrameStart = 159;
+iFrameEnd = 7073;
 intervalFrame = 1;
 
 [carPos,~,listFrame] = functions.getCarPos(v,iFrameStart,iFrameEnd);
@@ -94,7 +94,7 @@ gpsLonLog = Longitude_Degrees.Value + Longitude_Minutes.Value./60 + Longitude_Mi
 %%
 figure("WindowStyle","docked")
 geoplot(gpsLatLog,gpsLonLog)
-geobasemap none
+geobasemap satellite
 
 %%
 lapSelected = 2;

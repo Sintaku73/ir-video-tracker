@@ -8,7 +8,7 @@ v = VideoReader(pathVideo);
 
 pathLog = "input/sample_telemetry_ref.mat";
 lapSelected = 3;
-iFrameStart = 185;
+iFrameStart = 188;
 hTrimMap = 300;
 wTrimMap = hTrimMap;
 hCar = 60;
