@@ -76,6 +76,9 @@ boolBg = all(imgMap==0,3);
 boolBg = cat(3,boolBg,boolBg,boolBg);
 imgMap(boolBg) = 255;
 
+% Adjust brightness
+imgMap = imlocalbrighten(imgMap,"AlphaBlend",true);
+
 % Calculate the map limits
 posMin = min(carPosInv,[],1);
 posMax = max(carPosInv,[],1);
