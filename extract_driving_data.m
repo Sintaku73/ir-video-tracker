@@ -57,7 +57,7 @@ end
 % save("temp/carpos_sfl_comp.mat","carPos","carYaw","listIdxNearest")
 % load("temp/carpos_sfl_comp.mat")
 
-%%
+%% reference lap vs. extracted lap
 figure("WindowStyle","docked")
 imshow(dataRef.imgMap,dataRef.RA,"InitialMagnification","fit")
 axis ij
@@ -82,6 +82,18 @@ xlabel("x (m)")
 ylabel("y (m)")
 % colorbar
 legend(h,{"reference","extracted from replay","pair"})
+
+%% visualize only extracted lap
+figure("WindowStyle","docked")
+imshow(dataRef.imgMap,dataRef.RA,"InitialMagnification","fit")
+axis ij
+hold on
+plot(carPos(:,1),-carPos(:,2),"LineWidth",1.5,"SeriesIndex",2);
+ax = gca;
+ax.TickDir = "in";
+title("Extracted Lap")
+xlabel("x (m)")
+ylabel("y (m)")
 
 %% evaluate the result with comparison to GPS data
 load("input/sample_telemetry_tgt_for_eval.mat", ...
@@ -156,6 +168,7 @@ figure("WindowStyle","docked")
 geoplot(gpsLatValid,gpsLonValid,"DisplayName","log")
 hold on
 geoplot(gpsLat,gpsLon,"DisplayName","calculated")
+geobasemap satellite
 legend
 
 %% convert degrees to DMS
