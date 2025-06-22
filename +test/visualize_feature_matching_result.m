@@ -30,10 +30,41 @@ axis on
 gray1 = rgb2gray(trimmed1);
 gray2 = rgb2gray(trimmed2);
 
+%%
+gray1Adjusted = imlocalbrighten(gray1,"AlphaBlend",true);
+gray2Adjusted = imlocalbrighten(gray2,"AlphaBlend",true);
+
+figure("WindowStyle","docked")
+t = tiledlayout;
+
+nexttile
+imshowpair(gray1,gray1Adjusted,"montage")
+
+nexttile
+imshowpair(gray2,gray2Adjusted,"montage")
+
+title(t,"Original --> Adjusted")
+
 %% Find Matching Features Between Images
 % Detect features in both images.
-pts1 = detectSURFFeatures(gray1);
-pts2 = detectSURFFeatures(gray2);
+pts1 = detectSURFFeatures(gray1Adjusted,"MetricThreshold",500);
+pts2 = detectSURFFeatures(gray2Adjusted,"MetricThreshold",500);
+
+%%
+figure("WindowStyle","docked")
+tiledlayout(1,2)
+
+nexttile
+imshow(gray1)
+hold on
+plot(pts1)
+title("Frame 1")
+
+nexttile
+imshow(gray2)
+hold on
+plot(pts2)
+title("Frame 2")
 
 %%
 % Extract feature descriptors from the original and distorted features.
@@ -63,7 +94,7 @@ axis on
 % Due to its reliance on random sampling, the MSAC algorithm may produce
 % varying results in the transformation computation.
 [tform,inlierIdx] = estgeotform2d(matched2,matched1,"rigid");
-tformUtils = functions.getImgMove(gray1,gray2);
+% tformUtils = functions.getImgMove(gray1,gray2);
 inlierDistorted = matched2(inlierIdx,:);
 inlierOriginal = matched1(inlierIdx,:);
 

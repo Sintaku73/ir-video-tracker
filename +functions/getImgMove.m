@@ -3,8 +3,12 @@ arguments
     gray1 (:,:) uint8
     gray2 (:,:) uint8
 end
-pts1 = detectSURFFeatures(gray1);
-pts2 = detectSURFFeatures(gray2);
+% Adjust brightness
+gray1 = imlocalbrighten(gray1,"AlphaBlend",true);
+gray2 = imlocalbrighten(gray2,"AlphaBlend",true);
+
+pts1 = detectSURFFeatures(gray1,"MetricThreshold",500);
+pts2 = detectSURFFeatures(gray2,"MetricThreshold",500);
 
 [features1,validPts1] = extractFeatures(gray1,pts1);
 [features2,validPts2] = extractFeatures(gray2,pts2);
