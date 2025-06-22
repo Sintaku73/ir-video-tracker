@@ -94,7 +94,6 @@ ax.TickDir = "in";
 title("Extracted Lap")
 xlabel("x (m)")
 ylabel("y (m)")
-legend
 
 %% evaluate the result with comparison to GPS data
 load("input/sample_telemetry_tgt_for_eval.mat", ...
