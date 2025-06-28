@@ -8,13 +8,20 @@ v = VideoReader(pathVideo);
 
 pathLog = "input/sample_telemetry_ref.mat";
 lapSelected = 3;
-iFrameStart = 188;
+% iFrameStart = 188;
 hTrimMap = 300;
 wTrimMap = hTrimMap;
 hCar = 60;
 wCar = 30;
 hTrimMove = 720;
 wTrimMove = 1790;
+thDetectLap = 5;   % percent(%)
+
+%% start frame detection
+frameTemp = read(v,1);
+[~,rectLap] = imcrop(frameTemp);
+
+iFrameStart = functions.detectLapChange(v,rectLap,thDetectLap);
 
 %%
 [carPos,yawValid,listFrame,m2px,imgMap,RA,lat0,lon0,h0] = functions.getTrackMapLog( ...

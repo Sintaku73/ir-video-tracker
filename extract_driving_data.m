@@ -8,10 +8,19 @@ vRef = VideoReader(dataRef.pathVideo);
 
 %%
 v = VideoReader("input/sample_video_tgt.mp4");
-iFrameStart = 159;
-iFrameEnd = 7073;
+% iFrameStart = 159;
+% iFrameEnd = 7073;
 intervalFrame = 1;
+thDetectLap = 5;   % percent(%)
 
+%% start and end frames detection
+frameTemp = read(v,1);
+[~,rectLap] = imcrop(frameTemp);
+
+iFrameStart = functions.detectLapChange(v,rectLap,thDetectLap);
+iFrameEnd = functions.detectLapChange(v,rectLap,thDetectLap,true);
+
+%%
 [carPos,~,listFrame] = functions.getCarPos(v,iFrameStart,iFrameEnd);
 
 %%
